@@ -16,7 +16,7 @@ from copy import *
 from numpy import linalg
 from scipy import optimize
 
-reduc = 1e-5
+reduc = 1e0
 def calculate_J(xp):
     x = precon_to_state(xp)
     _, mismatch = calc_mismatch(x)
@@ -47,10 +47,11 @@ def calculate_dJdx(xp):
 def adjoint_model_mcf( foh, MCF_save ):
     mismatch = ( MCF_save - mcf_obs )
     pulse_MCF = adj_obs_oper( mismatch / mcf_obs_e**2 )
-    
     dMCF= zeros(nt)
     dfmcf,dfoh = zeros(nt),zeros(nt)
     dMCFi = 0
+    
+    rapidc = rapid/conv_mcf
     
     for i in range(edyear-1,styear-1,-1):
         iyear = i-styear
@@ -59,7 +60,7 @@ def adjoint_model_mcf( foh, MCF_save ):
         dMCFi   += pulse_MCF[iyear]
         
         # Chemistry
-        dMCFi   = dMCFi *  (1 - f_oh[iyear] * l_mcf_oh - l_mcf_strat - l_mcf_ocean)
+        dMCFi   = dMCFi *  (1 - foh[iyear] * l_mcf_oh - l_mcf_strat - l_mcf_ocean)
         dMCF[iyear] = dMCFi
         dfoh[iyear] = - l_mcf_oh * MCF_save[iyear] * dMCF[iyear]
                         
@@ -67,9 +68,9 @@ def adjoint_model_mcf( foh, MCF_save ):
         dstock = 0.
         for j in range(i+1 , i+11):
             jyear = j - styear
-            if j < edyear: dstock += 0.1 * rapid[iyear] * dMCF[jyear]
-        dfmcf[iyear] = dfmcf[iyear] - 0.75 * rapid[iyear] * dMCF[iyear]  + dstock
-        if (i + 1) < edyear: dfmcf[iyear] -= -0.25 * rapid[iyear] * dMCF[iyear+1]
+            if j < edyear: dstock += 0.1 * rapidc[iyear] * dMCF[jyear]
+        dfmcf[iyear] = dfmcf[iyear] - 0.75 * rapidc[iyear] * dMCF[iyear]  + dstock
+        if (i + 1) < edyear: dfmcf[iyear] -= -0.25 * rapidc[iyear] * dMCF[iyear+1]
             
     adj_mcf = [dfoh, array([dMCFi]), dfmcf]
     return adj_mcf
@@ -77,6 +78,7 @@ def adjoint_model_mcf( foh, MCF_save ):
 def adjoint_model_c12( foh, C12H4_save ):
     mismatch = ( C12H4_save - c12_obs )
     pulse_12CH4 = adj_obs_oper( mismatch / c12_obs_e**2 )
+    em0_12 = em0_c12 / conv_ch4
     
     d12CH4 = zeros(nt)
     df12,dfoh = zeros(nt),zeros(nt)
@@ -86,36 +88,37 @@ def adjoint_model_c12( foh, C12H4_save ):
         iyear = i-styear
         d12CH4i += pulse_12CH4[iyear]
         
-        d12CH4i = d12CH4i * (1 - f_oh[iyear] * l_ch4_oh - l_ch4_other)
+        d12CH4i = d12CH4i * (1 - foh[iyear] * l_ch4_oh - l_ch4_other)
         d12CH4[iyear] = d12CH4i
         dfoh[iyear] = - l_ch4_oh * C12H4_save[iyear] * d12CH4[iyear]
         
-        df12[iyear] = em0_c12[iyear] * d12CH4[iyear]
+        df12[iyear] = em0_12[iyear] * d12CH4[iyear]
         
     adj_c12 = [dfoh, array([d12CH4i]), df12]
     return adj_c12
     
-    
-def adjoint_model_c13(x):
+def adjoint_model_c13( foh, C13H4_save ):
     mismatch = ( C13H4_save - c13_obs )
     pulse_13CH4 = adj_obs_oper( mismatch / c13_obs_e**2 )
     
     d13CH4 = zeros(nt)
     df13,dfoh = zeros(nt),zeros(nt)
     d13CH4i = 0
+    em0_13 = em0_c13 / conv_13ch4
     
     for i in range(edyear-1, styear-1, -1):
         iyear = i-styear
         d13CH4i += pulse_13CH4[iyear]
         
-        d13CH4i = d13CH4i * (1 - f_oh[iyear] * l_ch4_oh * a_ch4_oh - a_ch4_other * l_ch4_other)
+        d13CH4i = d13CH4i * (1 - foh[iyear] * l_ch4_oh * a_ch4_oh - a_ch4_other * l_ch4_other)
         d13CH4[iyear] = d13CH4i
         dfoh[iyear] = - l_ch4_oh * C13H4_save[iyear] * d13CH4[iyear] * a_ch4_oh
         
-        df13[iyear] = em0_c12[iyear] * d13CH4[iyear]
+        df13[iyear] = em0_13[iyear] * d13CH4[iyear]
         
-    adj_c13 = [dfoh, array([d12CH4i]), df13]
-    return adj_c12
+    adj_c13 = [dfoh, array([d13CH4i]), df13]
+    return adj_c13
+    
 def calc_mismatch(x):
     C = forward_all(x)
     C_obs = obs_oper(C)
@@ -154,7 +157,7 @@ def forward_12ch4(x):
    
 def forward_13ch4(x):
     f_oh, C13H4_0, f_C13H4 = x[:nt], x[3*nt+2], x[3*nt+3 : 4*nt+3]
-    em0_13 = em0_c13 / conv_ch4
+    em0_13 = em0_c13 / conv_13ch4
     
     C13H4s = []; C13H4 = C13H4_0
     for year in range(styear,edyear):
@@ -327,6 +330,9 @@ xp_prior = state_to_precon(x_prior)
 xp_opt = optimize.fmin_bfgs(calculate_J,xp_prior,calculate_dJdx, gtol=1e-1)
 x_opt = precon_to_state(xp_opt)
 
+plt.figure()
+plt.plot(x_prior)
+plt.plot(x_opt)
 
 
 
@@ -393,20 +399,63 @@ ax2.legend(loc = 'upper right')
 
 # Adjoint test
 
-x = 10+20*np.random.rand(nstate)
-Mx = forward_all(x1)
+# MCF adjoint test
+x1 = 10+20*np.random.rand(nstate)
+Mx = forward_mcf(x1)
+x1 = np.concatenate((x1[:nt],array([x1[nt]]),x1[nt+1:2*nt+1]))
 
-x2 = 10+20*np.random.rand(nstate)
-_,y = calc_mismatch(x2)
-MTy = adjoint_model(x2)
+y = 100 + 100*np.random.rand(nt)
 
-print np.dot(Mx.flatten(),y.flatten()), np.dot(x,MTy)
+foh_test = x1[:nt]
+MTy = adjoint_model_mcf(foh_test, y)
+MTy = np.concatenate((MTy[0],MTy[1],MTy[2]))
 
+print np.dot(Mx,(y-mcf_obs)/mcf_obs_e**2), np.dot(x1,MTy)
 
+# 12CH4 adjoint test
 
+x1 = 10+20*np.random.rand(nstate)
+Mx = forward_12ch4(x1)
+x1 = np.concatenate((x1[:nt],array([x1[2*nt+1]]),x1[2*nt+2:3*nt+2]))
 
+y = 100 + 100*np.random.rand(nt)
 
+foh_test = x1[:nt]
+MTy = adjoint_model_c12(foh_test, y)
+MTy = np.concatenate((MTy[0],MTy[1],MTy[2]))
 
+print np.dot(Mx,y), np.dot(x1,MTy)
+
+# Gradient test
+
+def grad_test(x0,pert = 10**(-5)):
+    nx = len(x0)/2
+    x0 = np.array(x0)
+    x_priorA = x0
+    deriv = calc_dJdx(x0)
+    dE,dC = deriv[:nx], deriv[nx:]
+    J_prior = calc_J(x0)
+    
+    values = []
+    for i in range(nx):
+        pert_array = np.zeros(2*nx)
+        pert_array[i] = pert
+        x0_pert = x0 + pert_array
+        
+        predict = pert*deriv[i]
+        J_post = calc_J(x0_pert)
+        reduct = (J_post - J_prior)
+        if predict == reduct == 0:
+            val = 0
+        else:
+            val = abs((predict - reduct)/( ( predict + reduct ) / 2 ))
+#        print 'For grid cell',i,'......'
+#        if val <= 0.01:
+#            print 'Gradient test passed :)'
+#        else:
+#            print 'Gradient test failed :('
+        values.append(val)
+    return np.array( values )*100
 
 
 
