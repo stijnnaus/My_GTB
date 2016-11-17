@@ -7,7 +7,7 @@ Created on Fri Nov 04 11:36:16 2016
 
 import sys
 import os
-import timeit
+import time
 from numpy import array
 from pylab import *
 #from pyhdf.SD import *
@@ -20,9 +20,9 @@ from scipy import optimize
 def calculate_J(xp):
     x = precon_to_state(xp)
     con = forward_all(x)
-    dep_mcf,J_mcf   = cost_mcf(con)
-    dep_c12,J_c12   = cost_c12(con)
-    dep_c13,J_c13   = cost_c13(con)
+    dep_mcf,J_mcf,J_list_mcf = cost_mcf(con)
+    dep_c12,J_c12,J_list_c12 = cost_c12(con)
+    dep_c13,J_c13,J_list_c13 = cost_c13(con)
     
     J_pri = sum(dot(b_inv, ( x - x_prior )**2)) # prior
     J_obs = J_mcf + J_c12 + J_c13 # mismatch with obs
@@ -36,10 +36,10 @@ def calculate_dJdx(xp):
     mcf_save,c12_save,c13_save = forward_all(x)
     
     con = forward_all(x)
-    dep_mcf,J_mcf = cost_mcf(con)
-    dep_c12,J_c12 = cost_c12(con)
-    dep_c13,J_c13 = cost_c13(con)
-    dep = array([dep_mcf,dep_c12,dep_c13])
+    dep_mcf,J_mcf,J_list_mcf = cost_mcf(con)
+    dep_c12,J_c12,J_list_c12 = cost_c12(con)
+    dep_c13,J_c13,J_list_c13 = cost_c13(con)
+    dep = [dep_mcf,dep_c12,dep_c13]
     
     dfoh_mcf,dmcfi,dfmcf = adjoint_model_mcf( dep_mcf, foh, mcf_save )
     dfoh_c12,dc12i,df12 = adjoint_model_c12( dep_c12, foh, c12_save )
@@ -127,36 +127,41 @@ def cost_mcf(con):
     mcf,ch4,d13c = obs_oper(con)
     dif = (mcf - mcf_obs)
     dep = dif / mcf_obs_e**2
-    cost = sum(dif*dep)
-    return dep,cost
+    cost_list = dif*dep
+    cost = sum(cost_list)
+    return dep,cost,cost_list
     
 def cost_ch4(con):
     mcf,ch4,d13c = obs_oper(con)
     dif = (ch4 - ch4_obs)
     dep = dif / ch4_obs_e**2
-    cost = sum(dif*dep)
-    return dep,cost
+    cost_list = dif*dep
+    cost = sum(cost_list)
+    return dep,cost,cost_list
     
 def cost_d13c(con):
     mcf,ch4,d13c = obs_oper(con)
     dif = (d13c - d13c_obs)
     dep = dif / d13c_obs_e**2
-    cost = sum(dif*dep)
-    return dep,cost
+    cost_list = dif*dep
+    cost = sum(cost_list)
+    return dep,cost,cost_list
     
 def cost_c12(con):
     mcf,c12,c13 = obs_oper(con)
     dif = (c12 - c12_obs)
     dep = dif / c12_obs_e**2
-    cost = sum(dif*dep)
-    return dep,cost
+    cost_list = dif*dep
+    cost = sum(cost_list)
+    return dep,cost,cost_list
     
 def cost_c13(con):
     mcf,c12,c13 = obs_oper(con)
     dif = (c13 - c13_obs)
     dep = dif / c13_obs_e**2
-    cost = sum(dif*dep)
-    return dep,cost
+    cost_list = dif*dep
+    cost = sum(cost_list)
+    return dep,cost,cost_list
 
 def calc_mismatch(x):
     C = forward_all(x)
@@ -379,8 +384,8 @@ em0_ch4 = array([550.0]*nt)*1e9
 d13c_obs,d13c_obs_e = read_d13C_obs(os.path.join('OBSERVATIONS','d13C_Schaefer.txt'))
 em0_d13c = array([-54.1]*nt)
 c12_obs, c13_obs, c12_obs_e, c13_obs_e = deltot_to_split(ch4_obs,d13c_obs,ch4_obs_e,d13c_obs_e)
-c12_obs_e *= 1.
-c13_obs_e *= 1.
+c12_obs_e *= .1
+c13_obs_e *= .1
 mcf_obs_e *= 1.
 em0_c12, em0_c13 = deltot_to_split(em0_ch4, em0_d13c,mass=True)
 con_data = array([mcf_obs,ch4_obs,d13c_obs])
@@ -435,11 +440,11 @@ L_adj   = transpose(L_precon)
 L_inv   = linalg.inv(L_precon)
 xp_prior = state_to_precon(x_prior)
 
+start = time.time()
 xp_opt = optimize.fmin_bfgs(calculate_J,xp_prior,calculate_dJdx, gtol=1e-2)
-start = timeit.timeit()
 x_opt = precon_to_state(xp_opt)
-end   = timeit.timeit()
-print end-start
+end   = time.time()
+print 10**3*(end-start),'ms'
 
 #plt.figure()
 #plt.plot(x_prior)
@@ -448,101 +453,84 @@ print end-start
 mcf_prior = forward_mcf(x_prior)
 c12_prior,c13_prior = forward_c12(x_prior),forward_c13(x_prior)
 ch4_prior,d13c_prior = split_to_deltot(c12_prior,c13_prior)
+con_prior = forward_all(x_prior)
+J_ch4_prior  = ( (ch4_prior-ch4_obs)   / ch4_obs_e  )**2
+J_d13c_prior = ( (d13c_prior-d13c_obs) / d13c_obs_e )**2
+_,_,J_mcf_prior = cost_mcf( con_prior )
+_,_,J_c12_prior = cost_c12( con_prior )
+_,_,J_c13_prior = cost_c13( con_prior )
 
 mcf_opt = forward_mcf(x_opt)
 c12_opt, c13_opt = forward_c12(x_opt), forward_c13(x_opt)
 ch4_opt, d13c_opt = split_to_deltot(c12_opt, c13_opt)
+con_opt = forward_all(x_opt)
+J_ch4_opt  = ( (ch4_opt-ch4_obs)   / ch4_obs_e  )**2
+J_d13c_opt = ( (d13c_opt-d13c_obs) / d13c_obs_e )**2
+_,_,J_mcf_opt = cost_mcf( con_opt )
+_,_,J_c12_opt = cost_c12( con_opt )
+_,_,J_c13_opt = cost_c13( con_opt )
+
 
 f, axarr = plt.subplots(2, sharex=True)
 ax1,ax2 = axarr[0],axarr[1]
+ax1b,ax2b = ax1.twinx(), ax2.twinx()
 ax1.set_title(r'CH$_4$ concentrations and $\delta^{13}$C concentrations:'+' both from\n observations and modelled forward from the prior.')
 ax1.set_ylabel(r'CH$_4$ concentration (ppb)')
+ax1b.set_ylabel('Cost function')
 ax2.set_ylabel(r'$\delta^{13}$C (permil)')
+ax2b.set_ylabel('Cost function')
 ax2.set_xlabel('Year')
 ax1.errorbar(range(styear,edyear),ch4_obs,yerr=ch4_obs_e,fmt = 'o',color = 'red',label=r'CH$_4$, observed' )
-ax1.plot(range(styear,edyear),ch4_prior,'r-',label=r'CH$_4$, prior')
-ax1.plot(range(styear,edyear),ch4_opt  ,'g-',label=r'CH$_4$, optimized')
+ax1.plot( range(styear,edyear),ch4_prior,'r-',label=r'CH$_4$, prior')
+ax1.plot( range(styear,edyear),ch4_opt  ,'g-',label=r'CH$_4$, optimized')
+ax1b.plot(range(styear,edyear),J_ch4_prior, color = 'red')
+ax1b.plot(range(styear,edyear),J_ch4_opt, color = 'green')
 ax2.errorbar(range(styear,edyear),d13c_obs, yerr= d13c_obs_e  ,fmt = 'o',color = 'green',label=r'$\delta^{13}$C, observed')
-ax2.plot(range(styear,edyear),d13c_prior,'r--',label=r'$\delta^{13}$C, prior')
-ax2.plot(range(styear,edyear),d13c_opt  ,'g--',label=r'$\delta^{13}$C, optimized')
+ax2.plot( range(styear,edyear),d13c_prior,'r--',label=r'$\delta^{13}$C, prior')
+ax2.plot( range(styear,edyear),d13c_opt  ,'g--',label=r'$\delta^{13}$C, optimized')
+ax2b.plot(range(styear,edyear),J_d13c_prior, color = 'red')
+ax2b.plot(range(styear,edyear),J_d13c_opt, color = 'green')
 ax1.legend(loc='upper left')
 ax2.legend(loc='lower right')
 plt.savefig('delc_ch4')
 
-fig1 = plt.figure()
-ax1 = fig1.add_subplot(111)
-ax2 = ax1.twinx()
+fig1, axarr = plt.subplots(2, sharex=True)
+ax1,ax2 = axarr[0],axarr[1]
+ax1b,ax2b = ax1.twinx(), ax2.twinx()
 ax1.set_ylabel(r'$^{12}$CH$_4$ concentrations (ppb)')
+ax1b.set_ylabel('Cost function')
 ax2.set_ylabel(r'$^{13}$CH$_4$ concentrations (ppb)')
-ax1.set_xlabel('Year')
+ax2b.set_ylabel('Cost function')
+ax2.set_xlabel('Year')
 ax1.set_title(r'$^{12}$CH$_4$ and $^{13}$CH$_4$ concentrations:'+' both from observations\n and modelled forward from the prior.')
-ax1.errorbar(range(styear,edyear),c12_obs,yerr=c12_obs_e,fmt='o', color = 'lightblue', label = r'$^{12}$CH$_4$ obs')
+ax1.errorbar(range(styear,edyear),c12_obs,yerr=c12_obs_e,fmt='o', color = 'green', label = r'$^{12}$CH$_4$ obs')
 ax1.plot(range(styear,edyear),c12_prior,'-', color = 'red', label = r'$^{12}$CH$_4$ prior')
-ax1.plot(range(styear,edyear),c12_opt,'-', color = 'lightgreen', label = r'$^{12}$CH$_4$ optimized')
-ax2.errorbar(range(styear,edyear),c13_obs, yerr=c13_obs_e,fmt= 'o',color = 'blue', label = r'$^{13}$CH$_4$ obs')
-ax2.plot(range(styear,edyear),c13_prior,'-', color = 'maroon', label = r'$^{13}$CH$_4$ prior')
-ax2.plot(range(styear,edyear),c13_opt,'-', color = 'darkgreen', label = r'$^{13}$CH$_4$ optimized')
+ax1.plot(range(styear,edyear),c12_opt,'-', color = 'green', label = r'$^{12}$CH$_4$ optimized')
+ax1b.plot(range(styear,edyear),J_c12_prior, color = 'red')
+ax1b.plot(range(styear,edyear),J_c12_opt, color = 'green')
+ax2.errorbar(range(styear,edyear),c13_obs, yerr=c13_obs_e,fmt= 'o',color = 'green', label = r'$^{13}$CH$_4$ obs')
+ax2.plot(range(styear,edyear),c13_prior,'-', color = 'red', label = r'$^{13}$CH$_4$ prior')
+ax2.plot(range(styear,edyear),c13_opt,'-', color = 'green', label = r'$^{13}$CH$_4$ optimized')
+ax2b.plot(range(styear,edyear),J_c13_prior, color = 'red')
+ax2b.plot(range(styear,edyear),J_c13_opt, color = 'green')
 ax1.legend(loc = 'upper left')
 ax2.legend(loc = 'lower right')
 plt.savefig('c12_c13_concentrations')
 
-plt.figure()
-plt.xlabel('Year')
-plt.ylabel('mcf concentration (ppb)')
+fig_mcf = plt.figure()
+ax1 = fig_mcf.add_subplot(111)
+ax1b = ax1.twinx()
+ax1.set_xlabel('Year')
+ax1b.set_ylabel('Cost function')
+ax1.set_ylabel('mcf concentration (ppb)')
 ax1.set_title(r'mcf concentrations:'+' both from observations\n and modelled forward from the prior.')
-plt.errorbar(range(styear,edyear),mcf_obs, yerr = mcf_obs_e,fmt='o',color='gray',label = 'mcf observations')
-plt.plot(range(styear,edyear),mcf_prior,'-',color='red', label = 'mcf prior')
-plt.plot(range(styear,edyear),mcf_opt  ,'-',color='green', label = 'mcf optimized')
-plt.legend(loc='best')
+ax1.errorbar(range(styear,edyear),mcf_obs, yerr = mcf_obs_e,fmt='o',color='gray',label = 'mcf observations')
+ax1.plot(range(styear,edyear),mcf_prior,'-',color='red', label = 'mcf prior')
+ax1.plot(range(styear,edyear),mcf_opt  ,'-',color='green', label = 'mcf optimized')
+ax1b.plot(range(styear,edyear),J_mcf_prior, color = 'red')
+ax1b.plot(range(styear,edyear),J_mcf_opt, color = 'green')
+ax1.legend(loc='best')
 plt.savefig('mcf_concentrations')
-
-fig_em = plt.figure()
-ax1 = fig_em.add_subplot(111)
-ax2 = ax1.twinx()
-ax1.set_ylabel(r'$^{12}$CH$_4$ emissions (Tg/yr)')
-ax2.set_ylabel(r'$^{13}$CH$_4$ emissions (Tg/yr)')
-ax1.set_xlabel('Year')
-ax1.plot(range(styear,edyear),em0_c12,'o', color = 'lightblue', label = r'$^{12}$CH$_4$')
-ax2.plot(range(styear,edyear),em0_c13,'o', color = 'blue',      label = r'$^{13}$CH$_4$')
-ax1.legend(loc='upper left')
-ax2.legend(loc='lower right')
-
-
-fig1 = plt.figure()
-ax1 = fig1.add_subplot(111)
-ax2 = ax1.twinx()
-ax1.set_title(r'Observed $^{12}$CH$_4$ concentrations and its errors')
-ax1.set_ylabel(r'concentrations (ppb)')
-ax2.set_ylabel(r'errors (ppb)')
-ax1.set_xlabel('Year')
-ax1.plot(range(styear,edyear),c12_obs,'o', color = 'lightblue', label = r'$^{12}$CH$_4$ obs')
-ax2.plot(range(styear,edyear),c12_obs_e,'v',color = 'lightblue',label = r'$^{12}$CH$_4$ errors')
-#ax1.plot(range(styear,edyear),ch4_obs,'o', color = 'gray', label = r'CH$_4$ obs')
-#ax2.plot(range(styear,edyear),ch4_obs_e,'v',color = 'gray',label = r'CH$_4$ errors')
-ax1.legend(loc = 'upper left')
-ax2.legend(loc = 'center right')
-plt.savefig('c12_errors')
-
-
-fig1 = plt.figure()
-ax1 = fig1.add_subplot(111)
-ax2 = ax1.twinx()
-ax1.set_title(r'Observed $^{13}$CH$_4$ concentrations and its errors')
-ax1.set_ylabel(r'CH$_4$ concentrations (ppb)')
-ax2.set_ylabel(r'CH$_4$ errors (ppb)')
-ax1.set_xlabel('Year')
-ax1.plot(range(styear,edyear),c13_obs,'o', color = 'blue', label = r'$^{13}$CH$_4$ obs')
-ax2.plot(range(styear,edyear),c13_obs_e,'v',color = 'blue',label = r'$^{13}$CH$_4$ errors')
-ax1.legend(loc = 'upper left')
-ax2.legend(loc = 'center right')
-plt.savefig('c13_errors')
-
-
-
-
-
-
-
 
 
 
