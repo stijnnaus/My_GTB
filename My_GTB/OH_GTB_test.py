@@ -7,90 +7,50 @@ Created on Wed Nov 09 13:20:25 2016
 
 # Adjoint test
 
-def forward_tl_mcf_tes(x, foh, mcf_save):
-    dfoh, dmcf0, dfmcf = x[:nt], x[nt], x[nt+1:2*nt+1]
+def adjoint_mcf_test(foh, MCF_save, y):
+    pulse_MCF = y
+    MCF_save = Mx*5000
+    dMCF= zeros(nt)
+    dfmcf,dfoh = zeros(nt),zeros(nt)
+    dMCFi = 0
     
-    dmcfs = zeros(nt); dmcfi = dmcf0
     rapidc = rapid/conv_mcf
     
-    for year in range(styear,edyear):
-        i  = year - styear
-        ie = year - 1951
-        
-        # Emissions
-        dmcfi -= 0.75 * rapidc[ie] * dfmcf[i]
-        if year > styear: dmcfi -= 0.25 * rapidc[ie-1] * dfmcf[i-1]
-        for yearb in range(year-1,year-11,-1):
-            i2  = yearb - styear
-            ie2 = yearb - 1951
-            if yearb >= styear: dmcfi += 0.1*dfmcf[i2]*rapidc[ie2]
-                
-#        # Chemistry
-        dmcfi = dmcfi * ( 1. - l_mcf_ocean - l_mcf_strat - l_mcf_oh * foh[i] ) - \
-                dfoh[i] * mcf_save[i] * l_mcf_oh
-        dmcfs[i] = dmcfi
-        
-    return dmcfs
-
-def adjoint_mcf_test( dep, foh, mcf_save ):
-    pulse_mcf = dep
-    dmcf,dfmcf,dfoh = zeros(nt),zeros(nt),zeros(nt)
-    dmcfi = 0.
-    rapidc = rapid/conv_mcf
-    
-    for iyear in range(edyear-1,styear-1,-1):
-        i  = iyear-styear
-        ie = iyear-1951
+    for i in range(edyear-1,styear-1,-1):
+        iyear = i-styear
         
         # Add adjoint pulses
-        dmcfi  += pulse_mcf[i]
+        dMCFi += pulse_MCF[iyear]
         
         # Chemistry
-        dfoh[i] = - l_mcf_oh * mcf_save[i] * dmcfi
-        dmcfi   = dmcfi *  (1. - foh[i] * l_mcf_oh - l_mcf_strat - l_mcf_ocean)
-        dmcf[i] = dmcfi
-        
+        dfoh[iyear] = - l_mcf_oh * MCF_save[iyear] * dMCFi
+        dMCFi   = dMCFi *  (1 - foh[iyear] * l_mcf_oh - l_mcf_strat - l_mcf_ocean)
+        dMCF[iyear] = dMCFi
+                        
         # Emissions
-        adjem = - 0.75 * rapidc[ie] * dmcf[i]
-        if (iyear + 1) < edyear: adjem -= 0.25 * rapidc[ie] * dmcf[i+1]
-
-        for yearb in range(iyear+1 , iyear+11):
-            i2  = yearb - styear
-            ie2 = yearb - 1951
-            if yearb < edyear: adjem += 0.1 * rapidc[ie] * dmcf[i2]
-        dfmcf[i] = adjem
-
-    adj_mcf = concatenate((dfoh, array([dmcfi]), dfmcf))
+        dstock = 0.
+        for j in range(i+1 , i+11):
+            jyear = j - styear
+            if j < edyear: dstock += 0.1 * rapidc[iyear] * dMCF[jyear]
+        dfmcf[iyear] = - 0.75 * rapidc[iyear] * dMCF[iyear] + dstock
+        if (i + 1) < edyear: dfmcf[iyear] -= -0.25 * rapidc[iyear] * dMCF[iyear+1]
+    
+    adj_mcf = concatenate(dfoh, (array([dMCFi]), dfmcf))
     return adj_mcf
     
 # MCF adjoint test
 if False:
-    xbase = 2.*np.random.rand( 4*nt + 3 )
-    foh_tes = xbase[:nt]
-    mcf_tes = forward_mcf( xbase )
+    np.random.seed(0)
+    x1 = 3+2*np.random.rand( 2*nt + 1 )
+    Mx = forward_mcf(x1)
+    x1 = np.concatenate((array([x1[nt]]),x1[nt+1:2*nt+1]))
     
-    x1 = 5.*np.random.rand( 2*nt + 1 )
-    Mx = forward_tl_mcf_tes( x1, foh_tes, mcf_tes )
+    y = 100 + 100*np.random.rand(nt)
     
-    y = 50-100*np.random.rand(nt)
-    MTy = adjoint_mcf_test( y, foh_tes, mcf_tes )
+    foh_test = x1[:nt]
+    MTy = adjoint_mcf_test(foh_test,ones(nt),y)
     
-    print dot(Mx,y) / dot(x1,MTy)
-    #print MTy
-
-def forward_tl_c12(x, foh, c12_save):
-    dfoh, dc12_0, dfc12 = x[:nt], x[2*nt+1], x[2*nt+2 : 3*nt+2]
-    dem0_12 = dfc12 * (em0_c12 / conv_ch4)
-    
-    dc12s = []; dc12 = dc12_0
-    for year in range(styear,edyear):
-        i = year - styear
-        dc12 += dem0_12[i]
-        dc12  = dc12 * ( 1 - l_ch4_other - l_ch4_oh * foh[i]) - \
-                dfoh[i] * c12_save[i] * l_ch4_oh
-        dc12s.append(dc12)
-    
-    return array(dc12s)
+    print np.dot(Mx,y)/ np.dot(x1,MTy)
 
 def adjoint_model_c12_tes( dep, foh, c12_save ):
     pulse_c12 = dep
@@ -104,27 +64,28 @@ def adjoint_model_c12_tes( dep, foh, c12_save ):
         dc12i += pulse_c12[iyear]
         
         dfoh[iyear] = - l_ch4_oh * c12_save[iyear] * dc12i
-        dc12i = dc12i * (1. - foh[iyear] * l_ch4_oh - l_ch4_other)
+        dc12i = dc12i * (1 - foh[iyear] * l_ch4_oh - l_ch4_other)
         
         df12[iyear] = em0_12[iyear] * dc12i
         
-    adj_c12 = concatenate((dfoh, array([dc12i]), df12))
+    adj_c12 = np.concatenate((dfoh, array([dc12i]), df12))
     return adj_c12
 
 # 12CH4 adjoint test
-if False:
+if True:
+    np.random.seed(0)
     xbase = 2*np.random.rand( 4*nt + 3 )
     foh_tes = xbase[:nt]
     c12_tes = forward_c12(xbase)
     
-    x1 = 50.*np.random.rand( 4*nt + 3 )
+    x1 = 5*np.random.rand( 4*nt + 3 )
     Mx = forward_tl_c12( x1, foh_tes, c12_tes )
     x1 = np.concatenate((x1[:nt],array([x1[2*nt+1]]),x1[2*nt+2:3*nt+2]))
     
-    y = 50-10000*np.random.rand(nt)
+    y = 100 + 10*np.random.rand(nt)
     MTy = adjoint_model_c12_tes( y, foh_tes, c12_tes )
     
-    print dot(Mx,y) - dot(x1,MTy)
+    print dot(Mx,y) , dot(x1,MTy)
 
 # Gradient test
 
@@ -159,7 +120,7 @@ def grad_test(x0,pert = 10**(-5)):
         values.append(val)
     return array( values )*100,deriv
     
-run_grad_test = True
+run_grad_test = False
 if run_grad_test:
     # Gradient test 
     print 'Running grad test...'  
