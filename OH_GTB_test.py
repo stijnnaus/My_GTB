@@ -239,16 +239,74 @@ if run_grad_test2:
     
 # igac mcf forward vs mine
     
-mcf_me = forward_mcf(x_prior)
-_,_,_,mcf_he_d = run_model_mcf(state_apri)
+def run_model_mcf(state):
+    # simple patch for the moment.
+    ini = state[0]
+    fe = state[2:nyear+2]
+    noh = nyear*12
+    nech4 = nyear*12
+    foh = state[nyear+2:nyear+2+noh]
+    fes = state[2+nyear+noh+nech4:]
+    t = datetime(1988,1,1,0,0,0)
+    nd = [31,28,31,30,31,30,31,31,30,31,30,31]
+    mcf = []
+    tp = []
+    x = ini
+    mcf_save = []
+    ioh = 0   
+    lossys = []
+    for year in range(1988,2009):
+       # calculate this year's emissions:
+       iyear = year-1951   # index in arrays rapid, medium, slow, stock
+# emissions independent of fe (factor for stockpiling):
+       em = 0.75*rapid[iyear] + 0.25*rapid[iyear-1] \
+             + 0.25*medium[iyear] + 0.75*medium[iyear-1] + \
+             0.25*slow[iyear-1] + 0.75*slow[iyear-2]
+       for yearb in range(year-1,year-11,-1):
+          jyear = yearb - 1951
+          em += 0.1*stock[jyear] 
+# correction for changed stockpiling:
+# fe contains the fraction emission that moves from rapid to stock:
+       fyear = year-1988   # index in array fe: typically between -2.5% and 2.5%
+       em -= 0.75*fe[fyear]*rapid[iyear]
+       if (fyear-1) >= 0: em -= 0.25*fe[fyear-1]*rapid[iyear-1]
+       for yearb in range(year-1,year-11,-1):
+          jyear = yearb - 1951
+          fyear = yearb - 1988   
+          if fyear >= 0: em += 0.1*fe[fyear]*rapid[jyear] 
+       if year > 1991:   # the slow cat.
+          syear = year-1992   # index in array fes: typically between -2.5% and 2.5%
+          em -= 0.75*fes[syear]*rapid[iyear]
+          if (syear-2) >= 0: em += 0.75*fes[syear-2]*rapid[iyear-2]
+       em /= 365.0 
+       ohf = foh[ioh:ioh+12]   # now 12 numbers
+       ioh+=12
+       lossy = 0.
+       for month in range(1,13):
+          # advance state:
+          x, conc, mcf_f, lossm  = model_forward_mcf(x, em, ohf[month-1], nd[month-1])
+          lossy += lossm
+          # x contains the MCF mass at the end of the month, conc the day-to-day pathway in the month
+          # observation operator:
+          mcf.append(obs_oper(conc))
+          mcf_save.append(mcf_f)
+          tp.append(datetime(year,month,15,0,0))
+       lossys.append(lossy)
+    return mcf,tp,x,mcf_save,lossys    
+
+
+mcf_me,loss_me = forward_mcf(x_prior)
+_,_,_,mcf_he_d,loss_he = run_model_mcf(state_apri)
 mcf_he_d = array( [ array(mcf_he_d[i]) / conv_mcf for i in range(len(mcf_he_d)) ] )
 mcf_he_m = array( [ mean(array(mcf_he_d[i])) for i in range(len(mcf_he)) ] )
 mcf_he_ms = split( mcf_he_m , len(mcf_he_m)/12 )
 mcf_he_y = array( [ mean( array(mcf_he_ms[i]) ) for i in range(len(mcf_he_ms)) ] )
 
+plt.figure()
+plt.plot(array(loss_he)/conv_mcf)
+plt.plot(loss_me)
 
-xyr = linspace(1988,2008,num=len(mcf_he))
-
+plt.figure()
 plt.plot(range(1988,2009),mcf_me, 'ro-')
 plt.plot(range(1988,2009),mcf_he_y, 'go-')
     

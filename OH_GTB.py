@@ -589,8 +589,8 @@ plt.savefig('MCF_concentrations'+exp_name)
 # Plotting prior state vs optimized state
 
 mcf0_opt, c120_opt, c130_opt, foh_opt, fst_opt, fsl_opt, f12_opt, f13_opt = unpack(x_opt)  
-em0_opt = em0 + mcf_shift( fst_opt, fsl_opt )
-mcf_dev = em0_opt/em0 - 1.
+em0_opt = em0_mcf + mcf_shift( fst_opt, fsl_opt )
+mcf_dev = em0_opt/em0_mcf - 1.
 
 
 oh_prior, oh_opt = foh_prior*oh/1.e6, foh_opt*oh/1.e6
