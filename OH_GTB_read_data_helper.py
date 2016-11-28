@@ -179,7 +179,7 @@ def read_mcf_measurements():
        mcf_glob_mo_e.append( mcf_mo_e )
     
     mcf_glob_mo, mcf_glob_mo_e = fill_miss(mcf_glob_mo, mcf_glob_mo_e)
-    mcf_glob_yr, mcf_glob_yr_e =   year_av(mcf_glob_mo, mcf_glob_mo_e)
+    mcf_glob_yr, mcf_glob_yr_e = year_av(mcf_glob_mo, mcf_glob_mo_e)
     return mcf_glob_yr, mcf_glob_yr_e
 
 
@@ -352,14 +352,13 @@ def fill_miss(data,data_e):
                     
                 if type(nex) == str:
                     data[y][m] = prev
-                    data_e[y][m] = 5*ipr*data_e[y-ipr][m]
+                    data_e[y][m] = data_e[y-ipr][m]
                 elif type(prev) == str:
                     data[y][m] = nex
-                    data_e[y][m] = 5*ine*data_e[y+ine][m]
+                    data_e[y][m] = data_e[y+ine][m]
                 else:
                     data[y][m] = interp( [y], [y-ipr,y+ine], [prev,nex])
-                    data_e[y][m] = ((ipr + ine) / 2) * \
-                                    sqrt(data_e[y+ine][m]**2 + data_e[y-ipr][m]**2 )
+                    data_e[y][m] = sqrt(data_e[y+ine][m]**2 + data_e[y-ipr][m]**2 )
     return data, data_e
     
 def year_av(data,data_e):
@@ -373,7 +372,7 @@ def year_av(data,data_e):
     yr_av,yr_er = [],[]
     for y in range(nyear): 
         yr_av.append( mean(data[y]) )
-        yr_er.append( sqrt( sum( array(data_e[y])**2 ) ) )
+        yr_er.append( sqrt( sum( array(data_e[y])**2 ) ) / 12. )
     return array(yr_av), array(yr_er)
     
 def gage(station,spec):

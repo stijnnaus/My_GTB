@@ -237,7 +237,20 @@ if run_grad_test2:
     
     
     
+# igac mcf forward vs mine
     
+mcf_me = forward_mcf(x_prior)
+_,_,_,mcf_he_d = run_model_mcf(state_apri)
+mcf_he_d = array( [ array(mcf_he_d[i]) / conv_mcf for i in range(len(mcf_he_d)) ] )
+mcf_he_m = array( [ mean(array(mcf_he_d[i])) for i in range(len(mcf_he)) ] )
+mcf_he_ms = split( mcf_he_m , len(mcf_he_m)/12 )
+mcf_he_y = array( [ mean( array(mcf_he_ms[i]) ) for i in range(len(mcf_he_ms)) ] )
+
+
+xyr = linspace(1988,2008,num=len(mcf_he))
+
+plt.plot(range(1988,2009),mcf_me, 'ro-')
+plt.plot(range(1988,2009),mcf_he_y, 'go-')
     
     
     
