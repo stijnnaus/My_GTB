@@ -24,11 +24,13 @@ def calculate_J(xp):
     dep_c12,J_c12,J_list_c12 = cost_c12(con)
     dep_c13,J_c13,J_list_c13 = cost_c13(con)
     
-    J_pri = sum(dot(b_inv, ( x - x_prior )**2)) # prior
     J_obs = J_mcf + J_c12 + J_c13 # mismatch with obs
+    J_pri = sum(dot(b_inv, ( x - x_prior )**2)) # prior
     J_tot = .5 * ( J_pri + J_obs )
     print 'Cost function value:',J_tot
     return J_tot
+    
+
     
 def calculate_dJdx(xp):
     x = precon_to_state(xp)
@@ -42,12 +44,12 @@ def calculate_dJdx(xp):
     dep = [dep_mcf,dep_c12,dep_c13]
     
     dfoh_mcf,dmcfi,dfmcf = adjoint_model_mcf( dep_mcf, foh, mcf_save )
-    dfoh_c12,dc12i,df12 = adjoint_model_c12( dep_c12, foh, c12_save )
-    dfoh_c13,dc13i,df13 = adjoint_model_c13( dep_c13, foh, c13_save )
+    dfoh_c12,dc12i,dfc12 = adjoint_model_c12( dep_c12, foh, c12_save )
+    dfoh_c13,dc13i,dfc13 = adjoint_model_c13( dep_c13, foh, c13_save )
     dfoh = dfoh_mcf + dfoh_c12 + dfoh_c13
     
     dJdx_obs = np.concatenate((dfoh, dmcfi, dfmcf, \
-                                dc12i, df12, dc13i, df13))
+                                dc12i, dfc12, dc13i, dfc13))
     dJdx_pri = dot(b_inv, (x-x_prior))
     dJdx = dJdx_obs + dJdx_pri
     dJdxp = dot( L_adj, dJdx )
@@ -58,7 +60,7 @@ def adjoint_model_mcf( dep, foh, mcf_save ):
     pulse_mcf = adj_obs_oper( dep )
     dmcf,dfmcf,dfoh = zeros(nt),zeros(nt),zeros(nt)
     dmcfi = 0.
-    rapidc = rapid/conv_mcf
+    rapidc = rapid / conv_mcf
     
     for iyear in range(edyear-1,styear-1,-1):
         i  = iyear-styear
@@ -115,7 +117,7 @@ def adjoint_model_c13( dep, foh, c13_save ):
         i = iyear - styear
         dc13i += pulse_c13[i]
         
-        dfoh[i] = - l_ch4_oh * c13_save[i] * dc13i * a_ch4_oh
+        dfoh[i] = - a_ch4_oh * l_ch4_oh * c13_save[i] * dc13i
         dc13i   = dc13i * (1 - foh[i] * l_ch4_oh * a_ch4_oh - a_ch4_other * l_ch4_other)
         
         df13[i] = em0_13[i] * dc13i
@@ -170,14 +172,24 @@ def calc_mismatch(x):
 
 def forward_tl_mcf(x, foh, mcf_save):
     dfoh, dmcf0, dfmcf = x[:nt], x[nt], x[nt+1:2*nt+1]
-    dem = em0_mcf + mcf_shift(dfmcf)
-    dem /= conv_mcf
     
     dmcfs = zeros(nt); dmcfi = dmcf0
+    rapidc = rapid/conv_mcf
+    
     for year in range(styear,edyear):
-        i = year - styear
-        dmcfi += dem[i]
-        dmcfi = dmcfi * ( 1 - l_mcf_ocean - l_mcf_strat - l_mcf_oh * foh[i] ) - \
+        i  = year - styear
+        ie = year - 1951
+        
+        # Emissions
+        dmcfi -= 0.75 * rapidc[ie] * dfmcf[i]
+        if year > styear: dmcfi -= 0.25 * rapidc[ie-1] * dfmcf[i-1]
+        for yearb in range(year-1,year-11,-1):
+            i2  = yearb - styear
+            ie2 = yearb - 1951
+            if yearb >= styear: dmcfi += 0.1*dfmcf[i2]*rapidc[ie2]
+                
+#        # Chemistry
+        dmcfi = dmcfi * ( 1. - l_mcf_ocean - l_mcf_strat - l_mcf_oh * foh[i] ) - \
                 dfoh[i] * mcf_save[i] * l_mcf_oh
         dmcfs[i] = dmcfi
         
@@ -206,7 +218,7 @@ def forward_tl_c13(x, foh, c13_save):
         i = year - styear
         dc13 += dem_c13[i]
         dc13  = dc13 * ( 1 - a_ch4_other * l_ch4_other - a_ch4_oh * l_ch4_oh * foh[i] ) - \
-                dfoh[i] * c13_save[i] * l_ch4_oh
+                dfoh[i] * c13_save[i] * l_ch4_oh * a_ch4_oh
         dc13s.append(dc13)
     
     return array(dc13s)
@@ -305,17 +317,31 @@ def precon_to_state(xp):
     '''
     return dot( L_precon, xp ) + x_prior
 
-def split_to_deltot(c12, c13):
+def split_to_deltot(c12, c13, c12_e = [None], c13_e = [None], mass=False):
     '''
     Converts split c12 and c13 values (emission/concentration)  
-    to a delta 13C value and a total CH4 quantity.
+    to a delta 13C value and a total CH4 mass.
     '''
+    
+    ch4 = c12 + c13
+    if mass:
+        c12 /= conv_ch4
+        c13 /= conv_c13
     R_sample = c13 / c12
-    delCH4 = ( R_sample / R_ST ) - 1
-    totCH4 = c12 + c13
-    return totCH4, 1000*delCH4
+    d13c = 1000 * (( R_sample / R_ST ) - 1)
+    
+    if c12_e[0] != None and c13_e[0] != None:
+        ch4_e = sqrt( c12_e**2 + c13_e**2 )
+        if mass:
+            c12_e /= conv_ch4
+            c13_e /= conv_c13
+        d13c_e = sqrt( 1000 * ( ( - (c13/c12**2) / R_ST )**2 * c12_e**2 + \
+                                ( (1/c12) / R_ST )**2 * c13_e**2 ) )
+        return ch4, d13c, ch4_e, d13c_e
+    
+    return ch4, d13c
 
-def deltot_to_split(totCH4, delc, totCH4_e = [None], delc_e = [None],mass=False):
+def deltot_to_split(ch4, delc, ch4_e = [None], delc_e = [None],mass=False):
     '''
     Converts a (list of) d13C and total CH4 values to c12 and c13.
     If abso = True, then the total CH4 input is in mass (eg emissions), and a 
@@ -324,32 +350,43 @@ def deltot_to_split(totCH4, delc, totCH4_e = [None], delc_e = [None],mass=False)
     '''
     if type(delc) == float:
         q = R_ST * ( delc/1000. + 1 )
-        c12 = totCH4 / (1+q)
+        c12 = ch4 / (1+q)
         c13 = q * c12
         return c12, c13
         
-    totCH4, delc = array(totCH4), array(delc)/1000.
+    ch4, delc = array(ch4), array(delc)/1000.
     q = array( R_ST * (delc+1) )
-    c12 = totCH4 / (q+1)
+    c12 = ch4 / (q+1)
     c13 = q*c12
     if mass:
         c13 *= (conv_c13 / conv_ch4)
     
-    if delc_e[0] == None or totCH4_e[0] == None:
-        return c12, c13
-    else: 
-        totCH4_e, delc_e = array(totCH4_e), array(delc_e)/1000.
-        c12_e = sqrt((   totCH4_e / (1+q) )**2 + \
-                    ( delc_e * totCH4 * R_ST / (1+q)**2 )**2)
-        c13_e = sqrt(( q*totCH4_e / (1+q) )**2 + \
-                    ( delc_e * totCH4 * R_ST * (1/(1+q) - q/(1+q)**2) )**2)
+    if delc_e[0] != None and ch4_e[0] != None:
+        ch4_e, delc_e = array(ch4_e), array(delc_e)/1000.
+        c12_e = sqrt((   ch4_e / (1+q) )**2 + \
+                    ( delc_e * ch4 * R_ST / (1+q)**2 )**2)
+        c13_e = sqrt(( q*ch4_e / (1+q) )**2 + \
+                    ( delc_e * ch4 * R_ST * (1/(1+q) - q/(1+q)**2) )**2)
         if mass:
             c13_e *= (conv_c13 / conv_ch4)
         return c12, c13, c12_e, c13_e
+        
+    return c12, c13
+
+def unpack(x):
+    '''
+    Unpacks the state vector. Returns the respective components.
+    '''
+    foh = x[:nt]
+    mcfi,c12i,c13i = x[nt],x[2*nt+1],x[3*nt+2]
+    fst,fc12,fc13 = x[nt+1:2*nt+1],x[2*nt+2:3*nt+2],x[3*nt+3:4*nt+3]
+    fsl = x[4*nt+3:5*nt+3]
     
+    return foh, mcfi, fmcf, c12i, fc12, c13i, fc13    
 
 # setup model variables, emissions, etc:
-m = 5e18
+exp_name = '_Loose_Prior'
+m = 5.e18
 xmair = 28.5
 xmcf = 133.5
 xch4 = 16.0
@@ -383,39 +420,43 @@ ch4_obs,ch4_obs_e = read_ch4_measurements()
 em0_ch4 = array([550.0]*nt)*1e9
 d13c_obs,d13c_obs_e = read_d13C_obs(os.path.join('OBSERVATIONS','d13C_Schaefer.txt'))
 em0_d13c = array([-54.1]*nt)
+
+fec,femcf = 1.,1. # Reduction of the error
+mcf_obs_e *= femcf
+ch4_obs_e *= fec
+d13c_obs_e *= fec
+
 c12_obs, c13_obs, c12_obs_e, c13_obs_e = deltot_to_split(ch4_obs,d13c_obs,ch4_obs_e,d13c_obs_e)
-c12_obs_e *= .1
-c13_obs_e *= .1
-mcf_obs_e *= 1.
+
 em0_c12, em0_c13 = deltot_to_split(em0_ch4, em0_d13c,mass=True)
 con_data = array([mcf_obs,ch4_obs,d13c_obs])
 con_data_e = array([mcf_obs_e,ch4_obs_e,d13c_obs_e])
 
-mcf_ini = array([117])
-ch4_ini = ch4_obs[0]/1.01
-d13c_ini = d13c_obs[0]
-c12_ini,c13_ini = deltot_to_split(ch4_ini,d13c_ini)
-c12_ini,c13_ini = array([c12_ini]),array([c13_ini])
+mcf0_prior = array([117])
+ch40_prior = ch4_obs[0] / 1.01
+d13c0_prior = d13c_obs[0]
+c120_prior,c130_prior = deltot_to_split(ch40_prior,d13c0_prior)
+c120_prior,c130_prior = array([c120_prior]),array([c130_prior])
 foh_prior  = ones(nt)
 fmcf_prior = zeros(nt)
 f12_prior  = ones(nt)
 f13_prior  = ones(nt)
 
-x_prior = concatenate((foh_prior, mcf_ini, fmcf_prior, \
-                        c12_ini, f12_prior, c13_ini, f13_prior))
+x_prior = concatenate((foh_prior, mcf0_prior, fmcf_prior, \
+                        c120_prior, f12_prior, c130_prior, f13_prior))
 
 nstate = len(x_prior)
 # Constructing the prior error matrix b
 b = zeros((nstate,nstate))
-error_oh = 0.02
-error_e_mcf = 0.02; error_e_c12h4 = 0.02; error_e_c13h4 = 0.02 # emission errors
-error_mcf0 = 0.05; error_c12h40 = 0.05; error_c13h40 = 0.1 # error in initial concentration
-corlen_oh = 1.
+error_oh = .2
+error_e_mcf = 1.2; error_e_c12 = 1.2; error_e_c13 = 1.2 # emission errors
+error_mcf0 = 1.2; error_c120 = 1.2; error_c130 = 1.4 # error in initial concentration
+corlen_oh = 1. 
 corlen_em = 1.
 
 b[nt,nt] = (x_prior[nt]*error_mcf0)**2
-b[2*nt+1, 2*nt+1] = (x_prior[2*nt+1]*error_c12h40)**2
-b[3*nt+2, 3*nt+2] = (x_prior[3*nt+2]*error_c13h40)**2
+b[2*nt+1, 2*nt+1] = (x_prior[2*nt+1]*error_c120)**2
+b[3*nt+2, 3*nt+2] = (x_prior[3*nt+2]*error_c130)**2
 for i in range(0,nt):
     b[i,i] = error_oh**2
     for j in range(0,i):
@@ -424,15 +465,17 @@ for i in range(0,nt):
 for i in range(nt+1, 2*nt+1):
     b[i,i] = error_e_mcf**2
 for i in range(2*nt+2,3*nt+2): 
-    b[i,i] = error_e_c12h4**2
+    b[i,i] = error_e_c12**2
     for j in range(2*nt+2,i):
-        b[i,j] = exp(-(i-j)/corlen_em)*(error_e_c12h4)**2
+        b[i,j] = exp(-(i-j)/corlen_em)*(error_e_c12)**2
         b[j,i] = b[i,j]
 for i in range(3*nt+3,4*nt+3): 
-    b[i,i] = error_e_c12h4**2
+    b[i,i] = error_e_c13**2
     for j in range(3*nt+3,i):
-        b[i,j] = exp(-(i-j)/corlen_em)*(error_e_c12h4)**2
+        b[i,j] = exp(-(i-j)/corlen_em)*(error_e_c13)**2
         b[j,i] = b[i,j]
+        
+
 b_inv = linalg.inv(b)
 #     set up preconditioning
 L_precon = sqrt(b)
@@ -441,7 +484,7 @@ L_inv   = linalg.inv(L_precon)
 xp_prior = state_to_precon(x_prior)
 
 start = time.time()
-xp_opt = optimize.fmin_bfgs(calculate_J,xp_prior,calculate_dJdx, gtol=1e-2)
+xp_opt = optimize.fmin_bfgs(calculate_J,xp_prior,calculate_dJdx, gtol=1e-4)
 x_opt = precon_to_state(xp_opt)
 end   = time.time()
 print 10**3*(end-start),'ms'
@@ -452,8 +495,10 @@ print 10**3*(end-start),'ms'
 
 mcf_prior = forward_mcf(x_prior)
 c12_prior,c13_prior = forward_c12(x_prior),forward_c13(x_prior)
-ch4_prior,d13c_prior = split_to_deltot(c12_prior,c13_prior)
+
+ch4_prior,d13c_prior = split_to_deltot( c12_prior ,c13_prior )
 con_prior = forward_all(x_prior)
+
 J_ch4_prior  = ( (ch4_prior-ch4_obs)   / ch4_obs_e  )**2
 J_d13c_prior = ( (d13c_prior-d13c_obs) / d13c_obs_e )**2
 _,_,J_mcf_prior = cost_mcf( con_prior )
@@ -470,8 +515,8 @@ _,_,J_mcf_opt = cost_mcf( con_opt )
 _,_,J_c12_opt = cost_c12( con_opt )
 _,_,J_c13_opt = cost_c13( con_opt )
 
-
-f, axarr = plt.subplots(2, sharex=True)
+figSize = (10,10)
+f, axarr = plt.subplots(2, sharex=True, figsize = figSize)
 ax1,ax2 = axarr[0],axarr[1]
 ax1b,ax2b = ax1.twinx(), ax2.twinx()
 ax1.set_title(r'CH$_4$ concentrations and $\delta^{13}$C concentrations:'+' both from\n observations and modelled forward from the prior.')
@@ -480,7 +525,7 @@ ax1b.set_ylabel('Cost function')
 ax2.set_ylabel(r'$\delta^{13}$C (permil)')
 ax2b.set_ylabel('Cost function')
 ax2.set_xlabel('Year')
-ax1.errorbar(range(styear,edyear),ch4_obs,yerr=ch4_obs_e,fmt = 'o',color = 'red',label=r'CH$_4$, observed' )
+ax1.errorbar(range(styear,edyear),ch4_obs,yerr=ch4_obs_e,fmt = 'o',color = 'green',label=r'CH$_4$, observed' )
 ax1.plot( range(styear,edyear),ch4_prior,'r-',label=r'CH$_4$, prior')
 ax1.plot( range(styear,edyear),ch4_opt  ,'g-',label=r'CH$_4$, optimized')
 ax1b.plot(range(styear,edyear),J_ch4_prior, color = 'red')
@@ -492,9 +537,9 @@ ax2b.plot(range(styear,edyear),J_d13c_prior, color = 'red')
 ax2b.plot(range(styear,edyear),J_d13c_opt, color = 'green')
 ax1.legend(loc='upper left')
 ax2.legend(loc='lower right')
-plt.savefig('delc_ch4')
+plt.savefig('d13C_CH4_concentrations'+exp_name)
 
-fig1, axarr = plt.subplots(2, sharex=True)
+fig1, axarr = plt.subplots(2, sharex=True,figsize = figSize)
 ax1,ax2 = axarr[0],axarr[1]
 ax1b,ax2b = ax1.twinx(), ax2.twinx()
 ax1.set_ylabel(r'$^{12}$CH$_4$ concentrations (ppb)')
@@ -515,9 +560,9 @@ ax2b.plot(range(styear,edyear),J_c13_prior, color = 'red')
 ax2b.plot(range(styear,edyear),J_c13_opt, color = 'green')
 ax1.legend(loc = 'upper left')
 ax2.legend(loc = 'lower right')
-plt.savefig('c12_c13_concentrations')
+plt.savefig('C12_C13_concentrations'+exp_name)
 
-fig_mcf = plt.figure()
+fig_mcf = plt.figure(figsize = figSize)
 ax1 = fig_mcf.add_subplot(111)
 ax1b = ax1.twinx()
 ax1.set_xlabel('Year')
@@ -530,11 +575,117 @@ ax1.plot(range(styear,edyear),mcf_opt  ,'-',color='green', label = 'mcf optimize
 ax1b.plot(range(styear,edyear),J_mcf_prior, color = 'red')
 ax1b.plot(range(styear,edyear),J_mcf_opt, color = 'green')
 ax1.legend(loc='best')
-plt.savefig('mcf_concentrations')
+plt.savefig('MCF_concentrations'+exp_name)
+
+# Plotting prior state vs optimized state
+foh_opt, mcf0_opt, fmcf_opt = x_opt[:nt], x_opt[nt], x_opt[nt+1:2*nt+1]
+c120_opt, f12_opt = x_opt[2*nt+1], x_opt[2*nt+2:3*nt+2]
+c130_opt, f13_opt = x_opt[3*nt+2], x_opt[3*nt+3:4*nt+4]
+
+oh_prior, oh_opt = foh_prior*oh/1.e6, foh_opt*oh/1.e6
+errors_oh = np.array([error_oh]*nt)*oh_prior
+emcf_prior, emcf_opt = em0_mcf + mcf_shift(fmcf_prior), em0_mcf + mcf_shift(fmcf_opt)
+errors_e_mcf = np.array([error_e_mcf]*nt)*emcf_prior
+ec12_prior, ec12_opt = f12_prior * em0_c12, f12_opt * em0_c12
+ec13_prior, ec13_opt = f13_prior * em0_c13, f13_opt * em0_c13
+ec12_error, ec13_error = error_e_c12 * em0_c12, error_e_c13 * em0_c13
+ech4_prior, ed13c_prior, ech4_error, ed13c_error = split_to_deltot( ec12_prior, ec13_prior, ec12_error, ec13_error, mass=True )
+ech4_opt  , ed13c_opt   = split_to_deltot( ec12_opt  , ec13_opt  , mass=True )
+
+fig = plt.figure(figsize = figSize)
+ax1 = fig.add_subplot(111)
+ax1.set_title('Prior and optimized global mean OH concentrations')
+ax1.set_xlabel('Year')
+ax1.set_ylabel(r'OH concentration ($10^6$ molec cm$^{-3}$)')
+ax1.plot( range(styear,edyear), oh_prior, 'o-', color = 'red',   label = 'Prior'     )
+ax1.plot( range(styear,edyear), oh_opt  , 'o-', color = 'green', label = 'Optimized' )
+ax1.legend(loc='best')
+plt.savefig('OH_field_prior_opt'+exp_name)
+
+fig = plt.figure(figsize = figSize)
+ax1 = fig.add_subplot(111)
+ax1.set_title('Prior and optimized global mean MCF emissions')
+ax1.set_xlabel('Year')
+ax1.set_ylabel('MCF emissions (Gg/yr)')
+ax1.plot( range(styear,edyear), emcf_prior/1.e6, 'o-', color = 'red',   label = 'Prior'     )
+ax1.plot( range(styear,edyear), emcf_opt/1.e6  , 'o-', color = 'green', label = 'Optimized' )
+ax1.legend(loc='best')
+plt.savefig('emi_MCF_prior_opt'+exp_name)
+
+fig = plt.figure(figsize = figSize)
+ax1 = fig.add_subplot(211)
+ax1.set_title(r'Prior and optimized global mean CH$_4$ emissions')
+ax1.set_xlabel('Year')
+ax1.set_ylabel('CH$_4$ emissions (Tg/yr)')
+ax1.plot( range(styear,edyear), ech4_prior/1.e9, 'o-', color = 'red',   label = 'Prior'     )
+ax1.plot( range(styear,edyear), ech4_opt/1.e9  , 'o-', color = 'green', label = 'Optimized' )
+ax1.legend(loc='best')
+ax2 = fig.add_subplot(212)
+ax2.set_title(r'Prior and optimized $\delta^{13}$C global mean CH$_4$ emissions')
+ax2.set_xlabel('Year')
+ax2.set_ylabel('$\delta^{13}$C (permil)')
+ax2.plot( range(styear,edyear), ed13c_prior, 'o-', color = 'red',   label = 'Prior'     )
+ax2.plot( range(styear,edyear), ed13c_opt  , 'o-', color = 'green', label = 'Optimized' )
+ax2.legend(loc='best')
+plt.savefig('emi_CH4_d13C_prior_opt'+exp_name)
+
+
+rel_dev = (x_opt - x_prior)
+fig = plt.figure(figsize = figSize)
+ax1 = fig.add_subplot(111)
+ax1.set_title('Relative deviations from prior')
+ax1.set_xlabel('Year')
+ax1.set_ylabel('Relative deviation (%)')
+ax1.plot( range(styear,edyear), rel_dev[:nt], 'o-', color = 'blue', label = 'OH')
+ax1.plot( range(styear,edyear), rel_dev[nt+1:2*nt+1], 'o-', color = 'green', label = 'MCF' )
+ax1.plot( range(styear,edyear), rel_dev[2*nt+2:3*nt+2], 'o-', color = 'red', label = r'$^{12}$CH$_4$' )
+ax1.plot( range(styear,edyear), rel_dev[3*nt+3:4*nt+3], 'o-', color = 'maroon', label = r'$^{13}$CH$_4$' )
+ax1.legend(loc='best')
+plt.savefig('rel_dev_from_prior'+exp_name)
+
+
+J_prior = dot(b_inv, ( x_opt - x_prior )**2) # prior
+J_prior_ch4 = (( ech4_prior - ech4_opt ) / ech4_error)**2
+J_prior_d13c = (( ed13c_prior - ed13c_opt ) / ed13c_error)**2
+
+fig_J = plt.figure(figsize = figSize)
+ax1 = fig_J.add_subplot(212)
+ax2 = fig_J.add_subplot(211)
+ax1.set_title('Second part cost function')
+ax2.set_title('First part cost function')
+ax2.set_xlabel('Year')
+ax1.set_ylabel('Cost function')
+ax2.set_ylabel('Cost function')
+[range(styear,edyear),]
+ax1.plot( range(styear,edyear), J_prior[:nt], 'o-', color = 'blue', label = 'OH' )
+ax1.plot( range(styear,edyear), J_prior[nt+1:2*nt+1], 'o-', color = 'green', label = 'MCF' )
+ax1.plot( range(styear,edyear), J_prior[2*nt+2:3*nt+2], 'o-', color = 'red', label = r'$^{12}$CH$_4$' )
+ax1.plot( range(styear,edyear), J_prior[3*nt+3:4*nt+3], 'o-', color = 'maroon', label = r'$^{13}$CH$_4$' )
+ax2.plot( range(styear,edyear), J_mcf_opt, 'o-', color = 'green', label = 'MCF' )
+ax2.plot( range(styear,edyear), J_c12_opt, 'o-', color = 'red', label = r'$^{12}$CH$_4$' )
+ax2.plot( range(styear,edyear), J_c13_opt, 'o-', color = 'maroon', label = r'$^{13}$CH$_4$' )
+ax1.legend(loc='best')
+ax2.legend(loc='best')
+plt.savefig('cost_functions_state'+exp_name)
+
+
+
+plt.figure()
+plt.title('Second part of cost function for '+r'CH$_4$ and $\delta^{13}$C')
+plt.xlabel('Year')
+plt.ylabel('Cost function')
+plt.plot( range(styear,edyear), J_prior_ch4 ,'o-', color = 'red', label = r'CH$_4$')
+plt.plot( range(styear,edyear), J_prior_d13c,'o-', color = 'maroon', label = r'$\delta^{13}$C')
+plt.legend(loc = 'best')
+plt.savefig('cost_function_ch4_d13c'+exp_name)
 
 
 
 
+
+
+
+mcfff = mcf_obs
 
 
 

@@ -1,0 +1,157 @@
+# number_of_header_lines: 68
+# comment:  
+# comment:  ************ USE OF ESRL GMD DATA ****************
+# comment:  
+# comment: These data are made freely available to the public and the
+# comment: scientific community in the belief that their wide dissemination
+# comment: will lead to greater understanding and new scientific insights.
+# comment: The availability of these data does not constitute publication
+# comment: of the data.  NOAA relies on the ethics and integrity of the user to
+# comment: insure that ESRL receives fair credit for their work.  If the data 
+# comment: are obtained for potential use in a publication or presentation, 
+# comment: ESRL should be informed at the outset of the nature of this work.  
+# comment: If the ESRL data are essential to the work, or if an important 
+# comment: result or conclusion depends on the ESRL data, co-authorship
+# comment: may be appropriate.  This should be discussed at an early stage in
+# comment: the work.  Manuscripts using the ESRL data should be sent to ESRL
+# comment: for review before they are submitted for publication so we can
+# comment: insure that the quality and limitations of the data are accurately
+# comment: represented.
+# comment:  
+# comment: Every effort is made to produce the most accurate and precise
+# comment: measurements possible.  However, we reserve the right to make
+# comment: corrections to the data based on recalibration of standard gases
+# comment: or for other reasons deemed scientifically justified.
+# comment: 
+# comment: We are not responsible for results and conclusions based on use
+# comment: of these data without regard to this warning.
+# comment: 
+# contact_parameter: CH4 CCGG (Individual Flasks)
+# contact_name: Ed Dlugokencky
+# contact_telephone: (303) 497-6228
+# contact_email: Ed.Dlugokencky@noaa.gov
+# comment: 
+# comment:  ************ COLLABORATORS ***************
+# comment: 
+# comment: NOAA thanks the following collaborators without
+# comment: whom these measurements would not be possible.
+# comment: 
+# collaborator_name: National Science Foundation [NSF]
+# comment: 
+# comment:  ************ RECIPROCITY AGREEMENT ***************
+# comment: 
+# comment: Use of these data implies an agreement to reciprocate.
+# comment: Laboratories making similar measurements agree to make their
+# comment: own data available to the general public and to the scientific
+# comment: community in an equally complete and easily accessible form.
+# comment: Modelers are encouraged to make available to the community,
+# comment: upon request, their own tools used in the interpretation
+# comment: of the ESRL data, namely well documented model code, transport
+# comment: fields, and additional information necessary for other
+# comment: scientists to repeat the work and to run modified versions.
+# comment: Model availability includes collaborative support for new
+# comment: users of the models.
+# comment:
+# comment:  ************ DATA DESCRIPTION ***************
+# comment:
+# description_site-code: mcm
+# description_project-abbr: ccg_surface
+# description_strategy-abbr: flask
+# description_sample-constraints: date:1900-01-01,2015-12-31
+# description_creation-time: 2016-07-07 15:32:26
+# comment:
+# comment:  ************ DATA DOCUMENTATION ***************
+# comment:
+# comment: Please refer to the species-specific README file in the
+# comment: appropriate directory folder at ftp://aftp.cmdl.noaa.gov/data/trace_gases/.
+# comment:
+# data_fields: sample_site_code sample_year sample_month sample_day sample_hour sample_minute sample_seconds sample_id sample_method parameter_formula analysis_group_abbr analysis_value analysis_uncertainty analysis_flag analysis_instrument analysis_year analysis_month analysis_day analysis_hour analysis_minute analysis_seconds sample_latitude sample_longitude sample_altitude sample_elevation sample_intake_height event_number
+MCM 1985 12 04 04 30 00   424-85 P      ch4     CCGG  1620.630     2.400 ...  CS 1986 02 27 13 32 00 -77.8300  166.6000    14.00    11.00     3.00    75288
+MCM 1985 12 04 04 30 00   424-85 P      ch4     CCGG  1616.060     2.400 ...  CS 1986 02 27 14 13 00 -77.8300  166.6000    14.00    11.00     3.00    75288
+MCM 1986 01 01 08 00 00   718-85 P      ch4     CCGG  1604.110     2.400 ...  CS 1986 02 14 13 28 00 -77.8300  166.6000    14.00    11.00     3.00    75290
+MCM 1986 01 01 08 00 00   718-85 P      ch4     CCGG  1598.250     2.400 ...  CS 1986 02 14 14 08 00 -77.8300  166.6000    14.00    11.00     3.00    75290
+MCM 1986 01 16 02 15 00  1082-82 P      ch4     CCGG  1615.470     2.400 ...  CS 1986 04 01 16 28 00 -77.8300  166.6000    14.00    11.00     3.00    75292
+MCM 1986 01 16 02 15 00  1082-82 P      ch4     CCGG  1607.900     2.400 ...  CS 1986 04 01 17 09 00 -77.8300  166.6000    14.00    11.00     3.00    75292
+MCM 1986 01 30 23 30 00   416-85 P      ch4     CCGG  1599.270     2.400 ...  CS 1986 04 01 16 08 00 -77.8300  166.6000    14.00    11.00     3.00    75294
+MCM 1986 01 30 23 30 00   416-85 P      ch4     CCGG  1599.270     2.400 ...  CS 1986 04 01 16 48 00 -77.8300  166.6000    14.00    11.00     3.00    75294
+MCM 1986 02 18 00 00 00   908-83 P      ch4     CCGG  1593.810     2.400 ...  CS 1986 09 11 14 19 00 -77.8300  166.6000    14.00    11.00     3.00    75296
+MCM 1986 02 18 00 00 00   908-83 P      ch4     CCGG  1588.430     2.400 ...  CS 1986 09 11 14 48 00 -77.8300  166.6000    14.00    11.00     3.00    75296
+MCM 1986 03 02 02 00 00  1830-82 P      ch4     CCGG  1598.870     2.400 ...  CS 1986 09 11 13 36 00 -77.8300  166.6000    14.00    11.00     3.00    75298
+MCM 1986 03 02 02 00 00  1830-82 P      ch4     CCGG  1598.810     2.400 ...  CS 1986 09 11 14 05 00 -77.8300  166.6000    14.00    11.00     3.00    75298
+MCM 1986 03 16 22 00 00   348-83 P      ch4     CCGG  1597.070     2.400 ...  CS 1986 09 11 13 22 00 -77.8300  166.6000    14.00    11.00     3.00    75300
+MCM 1986 03 16 22 00 00   348-83 P      ch4     CCGG  1595.800     2.400 ...  CS 1986 09 11 13 50 00 -77.8300  166.6000    14.00    11.00     3.00    75300
+MCM 1986 04 01 23 00 00   702-85 P      ch4     CCGG  1599.500     2.400 ...  CS 1986 09 11 12 24 00 -77.8300  166.6000    14.00    11.00     3.00    75302
+MCM 1986 04 01 23 00 00   702-85 P      ch4     CCGG  1602.600     2.400 ...  CS 1986 09 11 12 53 00 -77.8300  166.6000    14.00    11.00     3.00    75302
+MCM 1986 04 16 03 00 00   904-83 P      ch4     CCGG  1603.540     2.400 ...  CS 1986 09 11 15 16 00 -77.8300  166.6000    14.00    11.00     3.00    75304
+MCM 1986 04 16 03 00 00   904-83 P      ch4     CCGG  1603.190     2.400 ...  CS 1986 09 11 15 45 00 -77.8300  166.6000    14.00    11.00     3.00    75304
+MCM 1986 05 02 03 00 00   538-83 P      ch4     CCGG  1611.120     2.400 ...  CS 1986 09 11 15 31 00 -77.8300  166.6000    14.00    11.00     3.00    75306
+MCM 1986 05 02 03 00 00   538-83 P      ch4     CCGG  1601.980     2.400 ...  CS 1986 09 11 15 59 00 -77.8300  166.6000    14.00    11.00     3.00    75306
+MCM 1986 06 02 23 00 00   676-83 P      ch4     CCGG  1610.430     2.400 ...  CS 1986 09 11 14 33 00 -77.8300  166.6000    14.00    11.00     3.00    75310
+MCM 1986 06 02 23 00 00   676-83 P      ch4     CCGG  1610.840     2.400 ...  CS 1986 09 11 15 02 00 -77.8300  166.6000    14.00    11.00     3.00    75310
+MCM 1986 06 16 22 00 00  1028-82 P      ch4     CCGG  1614.920     2.400 ...  CS 1986 09 11 17 11 00 -77.8300  166.6000    14.00    11.00     3.00    75312
+MCM 1986 06 16 22 00 00  1028-82 P      ch4     CCGG  1609.370     2.400 ...  CS 1986 09 11 17 40 00 -77.8300  166.6000    14.00    11.00     3.00    75312
+MCM 1986 07 03 04 00 00   822-83 P      ch4     CCGG  1628.490     2.400 ...  CS 1986 09 11 16 28 00 -77.8300  166.6000    14.00    11.00     3.00    75314
+MCM 1986 07 03 04 00 00   822-83 P      ch4     CCGG  1619.310     2.400 ...  CS 1986 09 11 16 57 00 -77.8300  166.6000    14.00    11.00     3.00    75314
+MCM 1986 07 16 02 00 00    34-83 P      ch4     CCGG  1622.980     2.400 ...  CS 1986 09 11 16 14 00 -77.8300  166.6000    14.00    11.00     3.00    75316
+MCM 1986 07 16 02 00 00    34-83 P      ch4     CCGG  1629.730     2.400 ...  CS 1986 09 11 16 42 00 -77.8300  166.6000    14.00    11.00     3.00    75316
+MCM 1986 08 03 21 40 00  1680-82 P      ch4     CCGG  1618.790     2.400 ...  CS 1986 09 11 17 25 00 -77.8300  166.6000    14.00    11.00     3.00    75318
+MCM 1986 08 03 21 40 00  1680-82 P      ch4     CCGG  1626.430     2.400 ...  CS 1986 09 11 17 54 00 -77.8300  166.6000    14.00    11.00     3.00    75318
+MCM 1986 09 01 00 00 00   920-82 P      ch4     CCGG  1640.030     2.400 ...  CS 1987 01 09 11 58 00 -77.8300  166.6000    14.00    11.00     3.00    75320
+MCM 1986 09 01 00 00 00   920-82 P      ch4     CCGG  1635.950     2.400 ...  CS 1987 01 09 12 26 00 -77.8300  166.6000    14.00    11.00     3.00    75320
+MCM 1986 09 16 06 30 00   880-83 P      ch4     CCGG  1630.840     2.400 ...  CS 1987 01 09 10 45 00 -77.8300  166.6000    14.00    11.00     3.00    75322
+MCM 1986 09 16 06 30 00   880-83 P      ch4     CCGG  1632.500     2.400 ...  CS 1987 01 09 11 14 00 -77.8300  166.6000    14.00    11.00     3.00    75322
+MCM 1986 10 01 02 30 00   390-85 P      ch4     CCGG  1631.410     2.400 ...  CS 1987 01 09 11 43 00 -77.8300  166.6000    14.00    11.00     3.00    75324
+MCM 1986 10 01 02 30 00   390-85 P      ch4     CCGG  1635.030     2.400 ...  CS 1987 01 09 12 12 00 -77.8300  166.6000    14.00    11.00     3.00    75324
+MCM 1986 10 16 09 00 00   826-83 P      ch4     CCGG  1633.140     2.400 ...  CS 1987 01 09 13 54 00 -77.8300  166.6000    14.00    11.00     3.00    75326
+MCM 1986 10 16 09 00 00   826-83 P      ch4     CCGG  1632.090     2.400 ...  CS 1987 01 09 14 23 00 -77.8300  166.6000    14.00    11.00     3.00    75326
+MCM 1986 11 02 02 00 00   222-83 P      ch4     CCGG  1636.080     2.400 ...  CS 1987 01 09 12 56 00 -77.8300  166.6000    14.00    11.00     3.00    75328
+MCM 1986 11 02 02 00 00   222-83 P      ch4     CCGG  1633.820     2.400 ...  CS 1987 01 09 13 25 00 -77.8300  166.6000    14.00    11.00     3.00    75328
+MCM 1986 11 16 04 00 00    74-83 P      ch4     CCGG  1625.300     2.400 ...  CS 1987 01 09 12 42 00 -77.8300  166.6000    14.00    11.00     3.00    75330
+MCM 1986 11 16 04 00 00    74-83 P      ch4     CCGG  1627.370     2.400 ...  CS 1987 01 09 13 10 00 -77.8300  166.6000    14.00    11.00     3.00    75330
+MCM 1986 11 30 21 40 00   916-83 P      ch4     CCGG  1626.800     2.400 ...  CS 1987 04 20 17 07 00 -77.8300  166.6000    14.00    11.00     3.00    75332
+MCM 1986 11 30 21 40 00   916-83 P      ch4     CCGG  1631.450     2.400 ...  CS 1987 04 20 17 35 00 -77.8300  166.6000    14.00    11.00     3.00    75332
+MCM 1986 12 16 05 00 00   726-82 P      ch4     CCGG  1625.660     2.400 ...  CS 1987 04 20 16 52 00 -77.8300  166.6000    14.00    11.00     3.00    75334
+MCM 1986 12 16 05 00 00   726-82 P      ch4     CCGG  1619.350     2.400 ...  CS 1987 04 20 17 21 00 -77.8300  166.6000    14.00    11.00     3.00    75334
+MCM 1987 01 03 06 30 00   446-83 P      ch4     CCGG  1624.440     2.400 ...  CS 1987 04 20 18 47 00 -77.8300  166.6000    14.00    11.00     3.00    75336
+MCM 1987 01 03 06 30 00   446-83 P      ch4     CCGG  1618.890     2.400 ...  CS 1987 04 20 19 19 00 -77.8300  166.6000    14.00    11.00     3.00    75336
+MCM 1987 01 19 08 00 00   948-82 P      ch4     CCGG  1615.820     2.400 ...  CS 1987 04 20 17 50 00 -77.8300  166.6000    14.00    11.00     3.00    75338
+MCM 1987 01 19 08 00 00   948-82 P      ch4     CCGG  1617.090     2.400 ...  CS 1987 04 20 18 18 00 -77.8300  166.6000    14.00    11.00     3.00    75338
+MCM 1987 02 05 01 15 00   832-83 P      ch4     CCGG  1613.650     2.400 ...  CS 1987 04 20 18 04 00 -77.8300  166.6000    14.00    11.00     3.00    75340
+MCM 1987 02 05 01 15 00   832-83 P      ch4     CCGG  1608.170     2.400 ...  CS 1987 04 20 18 33 00 -77.8300  166.6000    14.00    11.00     3.00    75340
+MCM 1987 02 22 13 00 00    20-85 P      ch4     CCGG  1607.670     2.400 ...  CS 1987 10 06 13 19 00 -77.8300  166.6000    14.00    11.00     3.00    75342
+MCM 1987 02 22 13 00 00    20-85 P      ch4     CCGG  1611.530     2.400 ...  CS 1987 10 06 13 47 00 -77.8300  166.6000    14.00    11.00     3.00    75342
+MCM 1987 03 04 03 30 00   790-85 P      ch4     CCGG  1611.260     2.400 ...  CS 1987 10 06 13 33 00 -77.8300  166.6000    14.00    11.00     3.00    75344
+MCM 1987 03 04 03 30 00   790-85 P      ch4     CCGG  1608.660     2.400 ...  CS 1987 10 06 14 02 00 -77.8300  166.6000    14.00    11.00     3.00    75344
+MCM 1987 03 18 22 15 00   904-83 P      ch4     CCGG  1644.920     2.400 N..  CS 1987 10 06 12 20 00 -77.8300  166.6000    14.00    11.00     3.00    75346
+MCM 1987 03 18 22 15 00   904-83 P      ch4     CCGG  1651.590     2.400 N..  CS 1987 10 06 12 49 00 -77.8300  166.6000    14.00    11.00     3.00    75346
+MCM 1987 04 05 06 30 00  1152-82 P      ch4     CCGG  1628.960     2.400 N..  CS 1987 10 06 12 34 00 -77.8300  166.6000    14.00    11.00     3.00    75348
+MCM 1987 04 05 06 30 00  1152-82 P      ch4     CCGG  1633.170     2.400 N..  CS 1987 10 06 13 03 00 -77.8300  166.6000    14.00    11.00     3.00    75348
+MCM 1987 04 20 04 00 00   312-85 P      ch4     CCGG  1614.600     2.400 ...  CS 1987 10 06 14 21 00 -77.8300  166.6000    14.00    11.00     3.00    75350
+MCM 1987 04 20 04 00 00   312-85 P      ch4     CCGG  1670.800     2.400 F..  CS 1987 10 06 14 50 00 -77.8300  166.6000    14.00    11.00     3.00    75350
+MCM 1987 05 04 19 00 00   326-85 P      ch4     CCGG  1625.980     2.400 ...  CS 1987 10 06 15 34 00 -77.8300  166.6000    14.00    11.00     3.00    75352
+MCM 1987 05 04 19 00 00   326-85 P      ch4     CCGG  1622.820     2.400 ...  CS 1987 10 06 16 04 00 -77.8300  166.6000    14.00    11.00     3.00    75352
+MCM 1987 05 22 18 00 00   448-83 P      ch4     CCGG  1643.280     2.400 N..  CS 1987 10 06 15 20 00 -77.8300  166.6000    14.00    11.00     3.00    75354
+MCM 1987 06 07 13 00 00   188-83 P      ch4     CCGG  1634.650     2.400 N..  CS 1987 10 06 14 35 00 -77.8300  166.6000    14.00    11.00     3.00    75356
+MCM 1987 06 07 13 00 00   188-83 P      ch4     CCGG  1638.840     2.400 N..  CS 1987 10 06 15 04 00 -77.8300  166.6000    14.00    11.00     3.00    75356
+MCM 1987 06 24 16 00 00    98-85 P      ch4     CCGG  1638.750     2.400 ...  CS 1987 12 11 15 22 00 -77.8300  166.6000    14.00    11.00     3.00    75358
+MCM 1987 06 24 16 00 00    98-85 P      ch4     CCGG  1636.260     2.400 ...  CS 1987 12 11 15 51 00 -77.8300  166.6000    14.00    11.00     3.00    75358
+MCM 1987 07 08 12 10 00   316-85 P      ch4     CCGG  1640.830     2.400 N..  CS 1987 12 11 16 33 00 -77.8300  166.6000    14.00    11.00     3.00    75360
+MCM 1987 07 08 12 10 00   316-85 P      ch4     CCGG  1647.670     2.400 N..  CS 1987 12 11 17 01 00 -77.8300  166.6000    14.00    11.00     3.00    75360
+MCM 1987 07 23 12 34 56   492-85 P      ch4     CCGG  1636.710     2.400 ...  CS 1987 12 11 16 47 00 -77.8300  166.6000    14.00    11.00     3.00    75362
+MCM 1987 07 23 12 34 56   492-85 P      ch4     CCGG  1640.520     2.400 ...  CS 1987 12 11 17 16 00 -77.8300  166.6000    14.00    11.00     3.00    75362
+MCM 1987 08 06 16 00 00   170-85 P      ch4     CCGG  1641.060     2.400 N..  CS 1987 12 11 17 33 00 -77.8300  166.6000    14.00    11.00     3.00    75364
+MCM 1987 08 06 16 00 00   170-85 P      ch4     CCGG  1639.630     2.400 N..  CS 1987 12 11 18 02 00 -77.8300  166.6000    14.00    11.00     3.00    75364
+MCM 1987 08 24 15 20 00   364-85 P      ch4     CCGG  1649.750     2.400 N..  CS 1987 12 11 18 35 00 -77.8300  166.6000    14.00    11.00     3.00    75366
+MCM 1987 08 24 15 20 00   364-85 P      ch4     CCGG  1648.470     2.400 N..  CS 1987 12 11 19 04 00 -77.8300  166.6000    14.00    11.00     3.00    75366
+MCM 1987 09 09 19 10 00   700-83 P      ch4     CCGG  1653.380     2.400 N..  CS 1987 12 11 17 47 00 -77.8300  166.6000    14.00    11.00     3.00    75368
+MCM 1987 09 09 19 10 00   700-83 P      ch4     CCGG  1657.780     2.400 N..  CS 1987 12 11 18 16 00 -77.8300  166.6000    14.00    11.00     3.00    75368
+MCM 1987 10 06 07 45 00   512-85 P      ch4     CCGG  1647.890     2.400 ...  CS 1987 12 11 20 39 00 -77.8300  166.6000    14.00    11.00     3.00    75370
+MCM 1987 10 06 07 45 00   512-85 P      ch4     CCGG  1639.570     2.400 ...  CS 1987 12 11 21 08 00 -77.8300  166.6000    14.00    11.00     3.00    75370
+MCM 1987 10 09 15 00 00   344-85 P      ch4     CCGG  1640.220     2.400 ...  CS 1987 12 11 19 53 00 -77.8300  166.6000    14.00    11.00     3.00    75372
+MCM 1987 10 09 15 00 00   344-85 P      ch4     CCGG  1640.040     2.400 ...  CS 1987 12 11 20 22 00 -77.8300  166.6000    14.00    11.00     3.00    75372
+MCM 1987 10 12 23 15 00   370-85 P      ch4     CCGG  1647.040     2.400 ...  CS 1987 12 11 19 39 00 -77.8300  166.6000    14.00    11.00     3.00    75374
+MCM 1987 10 12 23 15 00   370-85 P      ch4     CCGG  1643.690     2.400 ...  CS 1987 12 11 20 07 00 -77.8300  166.6000    14.00    11.00     3.00    75374
+MCM 1987 10 15 14 00 00   322-85 P      ch4     CCGG  1644.920     2.400 ...  CS 1987 12 11 20 54 00 -77.8300  166.6000    14.00    11.00     3.00    75376
+MCM 1987 10 15 14 00 00   322-85 P      ch4     CCGG  1648.920     2.400 ...  CS 1987 12 11 21 22 00 -77.8300  166.6000    14.00    11.00     3.00    75376
+MCM 1987 10 28 11 20 00   324-85 P      ch4     CCGG  1651.010     2.400 N..  CS 1987 12 11 18 49 00 -77.8300  166.6000    14.00    11.00     3.00    75378
+MCM 1987 10 28 11 20 00   324-85 P      ch4     CCGG  1648.030     2.400 N..  CS 1987 12 11 19 18 00 -77.8300  166.6000    14.00    11.00     3.00    75378

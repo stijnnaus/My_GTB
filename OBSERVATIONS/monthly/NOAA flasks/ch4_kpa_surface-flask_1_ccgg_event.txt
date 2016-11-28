@@ -1,0 +1,136 @@
+# number_of_header_lines: 68
+# comment:  
+# comment:  ************ USE OF ESRL GMD DATA ****************
+# comment:  
+# comment: These data are made freely available to the public and the
+# comment: scientific community in the belief that their wide dissemination
+# comment: will lead to greater understanding and new scientific insights.
+# comment: The availability of these data does not constitute publication
+# comment: of the data.  NOAA relies on the ethics and integrity of the user to
+# comment: insure that ESRL receives fair credit for their work.  If the data 
+# comment: are obtained for potential use in a publication or presentation, 
+# comment: ESRL should be informed at the outset of the nature of this work.  
+# comment: If the ESRL data are essential to the work, or if an important 
+# comment: result or conclusion depends on the ESRL data, co-authorship
+# comment: may be appropriate.  This should be discussed at an early stage in
+# comment: the work.  Manuscripts using the ESRL data should be sent to ESRL
+# comment: for review before they are submitted for publication so we can
+# comment: insure that the quality and limitations of the data are accurately
+# comment: represented.
+# comment:  
+# comment: Every effort is made to produce the most accurate and precise
+# comment: measurements possible.  However, we reserve the right to make
+# comment: corrections to the data based on recalibration of standard gases
+# comment: or for other reasons deemed scientifically justified.
+# comment: 
+# comment: We are not responsible for results and conclusions based on use
+# comment: of these data without regard to this warning.
+# comment: 
+# contact_parameter: CH4 CCGG (Individual Flasks)
+# contact_name: Ed Dlugokencky
+# contact_telephone: (303) 497-6228
+# contact_email: Ed.Dlugokencky@noaa.gov
+# comment: 
+# comment:  ************ COLLABORATORS ***************
+# comment: 
+# comment: NOAA thanks the following collaborators without
+# comment: whom these measurements would not be possible.
+# comment: 
+# collaborator_name: Battelle Pacific Northwest Laboratories [PNL]
+# comment: 
+# comment:  ************ RECIPROCITY AGREEMENT ***************
+# comment: 
+# comment: Use of these data implies an agreement to reciprocate.
+# comment: Laboratories making similar measurements agree to make their
+# comment: own data available to the general public and to the scientific
+# comment: community in an equally complete and easily accessible form.
+# comment: Modelers are encouraged to make available to the community,
+# comment: upon request, their own tools used in the interpretation
+# comment: of the ESRL data, namely well documented model code, transport
+# comment: fields, and additional information necessary for other
+# comment: scientists to repeat the work and to run modified versions.
+# comment: Model availability includes collaborative support for new
+# comment: users of the models.
+# comment:
+# comment:  ************ DATA DESCRIPTION ***************
+# comment:
+# description_site-code: kpa
+# description_project-abbr: ccg_surface
+# description_strategy-abbr: flask
+# description_sample-constraints: date:1900-01-01,2015-12-31
+# description_creation-time: 2016-07-07 15:32:16
+# comment:
+# comment:  ************ DATA DOCUMENTATION ***************
+# comment:
+# comment: Please refer to the species-specific README file in the
+# comment: appropriate directory folder at ftp://aftp.cmdl.noaa.gov/data/trace_gases/.
+# comment:
+# data_fields: sample_site_code sample_year sample_month sample_day sample_hour sample_minute sample_seconds sample_id sample_method parameter_formula analysis_group_abbr analysis_value analysis_uncertainty analysis_flag analysis_instrument analysis_year analysis_month analysis_day analysis_hour analysis_minute analysis_seconds sample_latitude sample_longitude sample_altitude sample_elevation sample_intake_height event_number
+KPA 1983 04 28 20 55 00   105-83 P      ch4     CCGG  1639.096     2.400 ...  CS 1983 05 03 00 12 00  32.0000 -112.0000  2083.00  2083.00     0.00    63608
+KPA 1983 04 28 20 55 00   105-83 P      ch4     CCGG  1642.133     2.400 ...  CS 1983 05 03 00 22 00  32.0000 -112.0000  2083.00  2083.00     0.00    63608
+KPA 1983 04 28 20 55 00   106-83 P      ch4     CCGG  1645.170     2.400 ...  CS 1983 05 03 00 12 00  32.0000 -112.0000  2083.00  2083.00     0.00    63609
+KPA 1983 04 28 20 55 00   106-83 P      ch4     CCGG  1645.170     2.400 ...  CS 1983 05 03 00 22 00  32.0000 -112.0000  2083.00  2083.00     0.00    63609
+KPA 1983 05 04 23 35 00   233-83 P      ch4     CCGG  1680.584     2.400 ...  CS 1983 06 01 00 12 00  32.0000 -112.0000  2083.00  2083.00     0.00    63612
+KPA 1983 05 04 23 35 00   233-83 P      ch4     CCGG  1680.584     2.400 ...  CS 1983 06 01 00 22 00  32.0000 -112.0000  2083.00  2083.00     0.00    63612
+KPA 1983 05 04 23 35 00   234-83 P      ch4     CCGG  1651.235     2.400 ...  CS 1983 06 01 00 12 00  32.0000 -112.0000  2083.00  2083.00     0.00    63613
+KPA 1983 05 04 23 35 00   234-83 P      ch4     CCGG  1674.510     2.400 ...  CS 1983 06 01 00 22 00  32.0000 -112.0000  2083.00  2083.00     0.00    63613
+KPA 1983 05 28 22 40 00   933-81 P      ch4     CCGG  1673.497     2.400 ...  CS 1983 06 06 00 12 00  32.0000 -112.0000  2083.00  2083.00     0.00    63616
+KPA 1983 05 28 22 40 00   933-81 P      ch4     CCGG  1673.497     2.400 ...  CS 1983 06 06 00 22 00  32.0000 -112.0000  2083.00  2083.00     0.00    63616
+KPA 1983 05 28 22 40 00   934-81 P      ch4     CCGG  1662.371     2.400 ...  CS 1983 06 06 00 12 00  32.0000 -112.0000  2083.00  2083.00     0.00    63617
+KPA 1983 05 28 22 40 00   934-81 P      ch4     CCGG  1662.371     2.400 ...  CS 1983 06 06 00 22 00  32.0000 -112.0000  2083.00  2083.00     0.00    63617
+KPA 1983 06 18 09 03 00   263-82 P      ch4     CCGG  1671.472     2.400 ...  CS 1983 06 28 00 12 00  32.0000 -112.0000  2083.00  2083.00     0.00    63620
+KPA 1983 06 18 09 03 00   263-82 P      ch4     CCGG  1671.472     2.400 ...  CS 1983 06 28 00 22 00  32.0000 -112.0000  2083.00  2083.00     0.00    63620
+KPA 1983 06 18 21 50 00   221-83 P      ch4     CCGG  1651.235     2.400 ...  CS 1983 07 06 00 12 00  32.0000 -112.0000  2083.00  2083.00     0.00    63624
+KPA 1983 06 18 21 50 00   221-83 P      ch4     CCGG  1662.371     2.400 ...  CS 1983 07 06 00 22 00  32.0000 -112.0000  2083.00  2083.00     0.00    63624
+KPA 1983 06 18 21 50 00   222-83 P      ch4     CCGG  1659.334     2.400 ...  CS 1983 07 06 00 12 00  32.0000 -112.0000  2083.00  2083.00     0.00    63625
+KPA 1983 06 18 21 50 00   222-83 P      ch4     CCGG  1659.334     2.400 ...  CS 1983 07 06 00 22 00  32.0000 -112.0000  2083.00  2083.00     0.00    63625
+KPA 1983 07 31 07 57 00   231-83 P      ch4     CCGG  1626.957     2.400 ...  CS 1983 08 06 00 12 00  32.0000 -112.0000  2083.00  2083.00     0.00    63628
+KPA 1983 07 31 07 57 00   231-83 P      ch4     CCGG  1626.957     2.400 ...  CS 1983 08 06 00 22 00  32.0000 -112.0000  2083.00  2083.00     0.00    63628
+KPA 1983 07 31 07 57 00   232-83 P      ch4     CCGG  1629.994     2.400 ...  CS 1983 08 06 00 12 00  32.0000 -112.0000  2083.00  2083.00     0.00    63629
+KPA 1983 07 31 07 57 00   232-83 P      ch4     CCGG  1629.994     2.400 ...  CS 1983 08 06 00 22 00  32.0000 -112.0000  2083.00  2083.00     0.00    63629
+KPA 1983 07 31 20 34 00  1701-82 P      ch4     CCGG  1617.846     2.400 ...  CS 1983 08 06 00 12 00  32.0000 -112.0000  2083.00  2083.00     0.00    63632
+KPA 1983 07 31 20 34 00  1701-82 P      ch4     CCGG  1626.957     2.400 ...  CS 1983 08 06 00 22 00  32.0000 -112.0000  2083.00  2083.00     0.00    63632
+KPA 1983 07 31 20 34 00  1702-82 P      ch4     CCGG  1621.895     2.400 ...  CS 1983 08 06 00 12 00  32.0000 -112.0000  2083.00  2083.00     0.00    63633
+KPA 1983 07 31 20 34 00  1702-82 P      ch4     CCGG  1637.071     2.400 ...  CS 1983 08 06 00 22 00  32.0000 -112.0000  2083.00  2083.00     0.00    63633
+KPA 1983 09 11 20 33 00   258-83 P      ch4     CCGG  1647.195     2.400 ...  CS 1983 09 15 00 12 00  32.0000 -112.0000  2083.00  2083.00     0.00    63637
+KPA 1983 09 11 20 33 00   258-83 P      ch4     CCGG  1654.272     2.400 ...  CS 1983 09 15 00 22 00  32.0000 -112.0000  2083.00  2083.00     0.00    63637
+KPA 1983 10 26 02 25 00   201-83 P      ch4     CCGG  1759.501     2.400 ...  CS 1983 11 08 00 12 00  32.0000 -112.0000  2083.00  2083.00     0.00    63640
+KPA 1983 10 26 02 25 00   201-83 P      ch4     CCGG  1761.525     2.400 ...  CS 1983 11 08 00 22 00  32.0000 -112.0000  2083.00  2083.00     0.00    63640
+KPA 1983 10 26 02 25 00   202-83 P      ch4     CCGG  1760.513     2.400 ...  CS 1983 11 08 00 12 00  32.0000 -112.0000  2083.00  2083.00     0.00    63641
+KPA 1983 10 26 02 25 00   202-83 P      ch4     CCGG  1761.525     2.400 ...  CS 1983 11 08 00 22 00  32.0000 -112.0000  2083.00  2083.00     0.00    63641
+KPA 1983 10 26 21 15 00    10-83 P      ch4     CCGG  1735.213     2.400 ...  CS 1983 11 08 00 12 00  32.0000 -112.0000  2083.00  2083.00     0.00    63645
+KPA 1983 10 26 21 15 00    10-83 P      ch4     CCGG  1735.213     2.400 ...  CS 1983 11 08 00 22 00  32.0000 -112.0000  2083.00  2083.00     0.00    63645
+KPA 1983 10 26 21 15 00     9-83 P      ch4     CCGG  1735.213     2.400 ...  CS 1983 11 08 00 12 00  32.0000 -112.0000  2083.00  2083.00     0.00    63644
+KPA 1983 10 26 21 15 00     9-83 P      ch4     CCGG  1735.213     2.400 ...  CS 1983 11 08 00 22 00  32.0000 -112.0000  2083.00  2083.00     0.00    63644
+KPA 1984 02 17 20 25 00   176-83 P      ch4     CCGG  1722.062     2.400 ...  CS 1984 03 04 00 12 00  32.0000 -112.0000  2083.00  2083.00     0.00    63649
+KPA 1984 02 17 20 25 00   176-83 P      ch4     CCGG  1722.062     2.400 ...  CS 1984 03 04 00 22 00  32.0000 -112.0000  2083.00  2083.00     0.00    63649
+KPA 1984 05 30 19 35 00  1534-82 P      ch4     CCGG  1661.359     2.400 ...  CS 1984 06 15 00 12 00  32.0000 -112.0000  2083.00  2083.00     0.00    63653
+KPA 1984 05 30 19 35 00  1534-82 P      ch4     CCGG  1664.396     2.400 ...  CS 1984 06 15 00 22 00  32.0000 -112.0000  2083.00  2083.00     0.00    63653
+KPA 1984 08 28 20 15 00   976-82 P      ch4     CCGG  1663.383     2.400 ...  CS 1984 09 22 00 12 00  32.0000 -112.0000  2083.00  2083.00     0.00    63655
+KPA 1984 08 28 20 15 00   976-82 P      ch4     CCGG  1668.435     2.400 ...  CS 1984 09 22 00 22 00  32.0000 -112.0000  2083.00  2083.00     0.00    63655
+KPA 1984 09 18 18 30 00    86-83 P      ch4     CCGG  1697.785     2.400 ...  CS 1984 09 22 00 11 00  32.0000 -112.0000  2083.00  2083.00     0.00    63657
+KPA 1984 11 27 21 30 00   534-82 P      ch4     CCGG  1696.890     2.400 ...  CS 1985 01 16 11 00 00  32.0000 -112.0000  2083.00  2083.00     0.00    63661
+KPA 1984 11 27 21 30 00   534-82 P      ch4     CCGG  1700.620     2.400 ...  CS 1985 01 16 11 40 00  32.0000 -112.0000  2083.00  2083.00     0.00    63661
+KPA 1984 12 14 20 30 00   948-82 P      ch4     CCGG  1719.390     2.400 ...  CS 1985 03 28 17 24 00  32.0000 -112.0000  2083.00  2083.00     0.00    63663
+KPA 1984 12 14 20 30 00   948-82 P      ch4     CCGG  1719.440     2.400 ...  CS 1985 03 28 18 03 00  32.0000 -112.0000  2083.00  2083.00     0.00    63663
+KPA 1985 03 22 12 34 56   898-82 P      ch4     CCGG  1706.420     2.400 ...  CS 1985 03 28 15 45 00  32.0000 -112.0000  2083.00  2083.00     0.00    63665
+KPA 1985 03 22 12 34 56   898-82 P      ch4     CCGG  1700.260     2.400 ...  CS 1985 03 28 16 25 00  32.0000 -112.0000  2083.00  2083.00     0.00    63665
+KPA 1985 04 11 21 00 00   756-83 P      ch4     CCGG  1685.670     2.400 ..>  CS 1985 05 22 15 53 00  32.0000 -112.0000  2083.00  2083.00     0.00    63669
+KPA 1985 04 11 21 00 00   756-83 P      ch4     CCGG  1683.470     2.400 ...  CS 1985 05 22 16 33 00  32.0000 -112.0000  2083.00  2083.00     0.00    63669
+KPA 1985 09 20 20 00 00   728-82 P      ch4     CCGG  1728.200     2.400 N..  CS 1987 11 17 11 17 00  32.0000 -112.0000  2083.00  2083.00     0.00    63671
+KPA 1985 09 20 20 00 00   728-82 P      ch4     CCGG  1726.670     2.400 N..  CS 1987 11 17 11 46 00  32.0000 -112.0000  2083.00  2083.00     0.00    63671
+KPA 1989 01 19 15 37 00  2266-62 P      ch4     CCGG  1764.150     2.400 ...  CS 1989 02 02 13 58 00  32.0000 -112.0000  2083.00  2083.00     0.00    63672
+KPA 1989 01 19 15 37 00  2266-62 P      ch4     CCGG  1755.000     2.400 ...  CS 1989 02 02 14 13 00  32.0000 -112.0000  2083.00  2083.00     0.00    63672
+KPA 1989 01 19 16 15 00  2264-62 P      ch4     CCGG  1759.130     2.400 ..<  CS 1989 02 01 19 56 00  32.0000 -112.0000  2083.00  2083.00     0.00    63673
+KPA 1989 01 19 16 15 00  2264-62 P      ch4     CCGG  1752.050     2.400 ..>  CS 1989 02 01 20 10 00  32.0000 -112.0000  2083.00  2083.00     0.00    63673
+KPA 1989 01 19 22 27 00  2272-62 P      ch4     CCGG  1744.050     2.400 ...  CS 1989 02 01 18 43 00  32.0000 -112.0000  2083.00  2083.00     0.00    63674
+KPA 1989 01 19 22 27 00  2272-62 P      ch4     CCGG  1758.000     2.400 ..<  CS 1989 02 01 18 58 00  32.0000 -112.0000  2083.00  2083.00     0.00    63674
+KPA 1989 01 19 22 27 00  2272-62 P      ch4     CCGG  1755.990     2.400 ..>  CS 1989 02 01 19 13 00  32.0000 -112.0000  2083.00  2083.00     0.00    63674
+KPA 1989 01 20 17 05 00  2274-62 P      ch4     CCGG  1792.320     2.400 ...  CS 1989 02 01 18 15 00  32.0000 -112.0000  2083.00  2083.00     0.00    63675
+KPA 1989 01 20 17 05 00  2274-62 P      ch4     CCGG  1785.090     2.400 ...  CS 1989 02 01 18 29 00  32.0000 -112.0000  2083.00  2083.00     0.00    63675
+KPA 1989 10 30 18 00 00  2036-62 P      ch4     CCGG  1770.780     2.400 ...  CS 1989 11 09 18 47 00  32.0000 -112.0000  2083.00  2083.00     0.00    63677
+KPA 1989 10 30 18 00 00  2036-62 P      ch4     CCGG  1770.830     2.400 ...  CS 1989 11 09 19 01 00  32.0000 -112.0000  2083.00  2083.00     0.00    63677
+KPA 1989 10 31 19 20 00  2142-62 P      ch4     CCGG  1762.990     2.400 ...  CS 1989 11 09 18 18 00  32.0000 -112.0000  2083.00  2083.00     0.00    63679
+KPA 1989 10 31 19 20 00  2142-62 P      ch4     CCGG  1759.410     2.400 ...  CS 1989 11 09 18 32 00  32.0000 -112.0000  2083.00  2083.00     0.00    63679
+KPA 1989 10 31 20 40 00  2022-62 P      ch4     CCGG  1775.610     2.400 ...  CS 1989 11 09 17 49 00  32.0000 -112.0000  2083.00  2083.00     0.00    63681
+KPA 1989 10 31 20 40 00  2022-62 P      ch4     CCGG  1780.450     2.400 ...  CS 1989 11 09 18 03 00  32.0000 -112.0000  2083.00  2083.00     0.00    63681

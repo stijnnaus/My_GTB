@@ -1,0 +1,111 @@
+# number_of_header_lines: 69
+# comment:  
+# comment:  ************ USE OF ESRL GMD DATA ****************
+# comment:  
+# comment: These data are made freely available to the public and the
+# comment: scientific community in the belief that their wide dissemination
+# comment: will lead to greater understanding and new scientific insights.
+# comment: The availability of these data does not constitute publication
+# comment: of the data.  NOAA relies on the ethics and integrity of the user to
+# comment: insure that ESRL receives fair credit for their work.  If the data 
+# comment: are obtained for potential use in a publication or presentation, 
+# comment: ESRL should be informed at the outset of the nature of this work.  
+# comment: If the ESRL data are essential to the work, or if an important 
+# comment: result or conclusion depends on the ESRL data, co-authorship
+# comment: may be appropriate.  This should be discussed at an early stage in
+# comment: the work.  Manuscripts using the ESRL data should be sent to ESRL
+# comment: for review before they are submitted for publication so we can
+# comment: insure that the quality and limitations of the data are accurately
+# comment: represented.
+# comment:  
+# comment: Every effort is made to produce the most accurate and precise
+# comment: measurements possible.  However, we reserve the right to make
+# comment: corrections to the data based on recalibration of standard gases
+# comment: or for other reasons deemed scientifically justified.
+# comment: 
+# comment: We are not responsible for results and conclusions based on use
+# comment: of these data without regard to this warning.
+# comment: 
+# contact_parameter: CH4 CCGG (Individual Flasks)
+# contact_name: Ed Dlugokencky
+# contact_telephone: (303) 497-6228
+# contact_email: Ed.Dlugokencky@noaa.gov
+# comment: 
+# comment:  ************ COLLABORATORS ***************
+# comment: 
+# comment: NOAA thanks the following collaborators without
+# comment: whom these measurements would not be possible.
+# comment: 
+# collaborator_name: Scripps Institution of Oceanography (SIO)
+# collaborator_name: [SIO]
+# comment: 
+# comment:  ************ RECIPROCITY AGREEMENT ***************
+# comment: 
+# comment: Use of these data implies an agreement to reciprocate.
+# comment: Laboratories making similar measurements agree to make their
+# comment: own data available to the general public and to the scientific
+# comment: community in an equally complete and easily accessible form.
+# comment: Modelers are encouraged to make available to the community,
+# comment: upon request, their own tools used in the interpretation
+# comment: of the ESRL data, namely well documented model code, transport
+# comment: fields, and additional information necessary for other
+# comment: scientists to repeat the work and to run modified versions.
+# comment: Model availability includes collaborative support for new
+# comment: users of the models.
+# comment:
+# comment:  ************ DATA DESCRIPTION ***************
+# comment:
+# description_site-code: sio
+# description_project-abbr: ccg_surface
+# description_strategy-abbr: flask
+# description_sample-constraints: date:1900-01-01,2015-12-31
+# description_creation-time: 2016-07-07 15:33:10
+# comment:
+# comment:  ************ DATA DOCUMENTATION ***************
+# comment:
+# comment: Please refer to the species-specific README file in the
+# comment: appropriate directory folder at ftp://aftp.cmdl.noaa.gov/data/trace_gases/.
+# comment:
+# data_fields: sample_site_code sample_year sample_month sample_day sample_hour sample_minute sample_seconds sample_id sample_method parameter_formula analysis_group_abbr analysis_value analysis_uncertainty analysis_flag analysis_instrument analysis_year analysis_month analysis_day analysis_hour analysis_minute analysis_seconds sample_latitude sample_longitude sample_altitude sample_elevation sample_intake_height event_number
+SIO 1984 02 02 23 45 00   748-83 P      ch4     CCGG  1710.936     2.400 ...  CS 1984 02 07 00 12 00  32.8300 -117.2700    14.00    14.00     0.00   118079
+SIO 1984 02 02 23 45 00   748-83 P      ch4     CCGG  1711.948     2.400 ...  CS 1984 02 07 00 22 00  32.8300 -117.2700    14.00    14.00     0.00   118079
+SIO 1984 02 02 23 49 00   754-83 P      ch4     CCGG  1705.874     2.400 ...  CS 1984 02 07 00 12 00  32.8300 -117.2700    14.00    14.00     0.00   118081
+SIO 1984 02 02 23 49 00   754-83 P      ch4     CCGG  1705.874     2.400 ...  CS 1984 02 07 00 22 00  32.8300 -117.2700    14.00    14.00     0.00   118081
+SIO 1984 02 02 23 53 00   772-83 P      ch4     CCGG  1701.824     2.400 ...  CS 1984 02 07 00 12 00  32.8300 -117.2700    14.00    14.00     0.00   118083
+SIO 1984 02 02 23 53 00   772-83 P      ch4     CCGG  1702.837     2.400 ...  CS 1984 02 07 00 22 00  32.8300 -117.2700    14.00    14.00     0.00   118083
+SIO 1984 02 02 23 57 00   774-83 P      ch4     CCGG  1700.812     2.400 ...  CS 1984 02 07 00 12 00  32.8300 -117.2700    14.00    14.00     0.00   118085
+SIO 1984 02 02 23 57 00   774-83 P      ch4     CCGG  1700.812     2.400 ...  CS 1984 02 07 00 22 00  32.8300 -117.2700    14.00    14.00     0.00   118085
+SIO 1984 02 03 00 01 00  1484-82 P      ch4     CCGG  1702.837     2.400 ...  CS 1984 02 07 00 12 00  32.8300 -117.2700    14.00    14.00     0.00   118087
+SIO 1984 02 03 00 01 00  1484-82 P      ch4     CCGG  1702.837     2.400 ...  CS 1984 02 07 00 22 00  32.8300 -117.2700    14.00    14.00     0.00   118087
+SIO 1984 02 03 00 05 00  1546-82 P      ch4     CCGG  1699.799     2.400 ...  CS 1984 02 07 00 12 00  32.8300 -117.2700    14.00    14.00     0.00   118089
+SIO 1984 09 12 23 22 00  1758-82 P      ch4     CCGG  1676.534     2.400 ...  CS 1984 09 21 00 12 00  32.8300 -117.2700    14.00    14.00     0.00   118095
+SIO 1984 09 12 23 22 00  1758-82 P      ch4     CCGG  1676.534     2.400 ...  CS 1984 09 21 00 22 00  32.8300 -117.2700    14.00    14.00     0.00   118095
+SIO 1984 09 12 23 37 00   704-83 P      ch4     CCGG  1679.572     2.400 ...  CS 1984 09 21 00 12 00  32.8300 -117.2700    14.00    14.00     0.00   118101
+SIO 1985 01 30 22 04 00  1364-82 P      ch4     CCGG  1761.450     2.400 N..  CS 1985 02 05 13 13 00  32.8300 -117.2700    14.00    14.00     0.00   118103
+SIO 1985 01 30 22 04 00  1364-82 P      ch4     CCGG  1756.220     2.400 N..  CS 1985 02 05 13 52 00  32.8300 -117.2700    14.00    14.00     0.00   118103
+SIO 1985 01 30 22 12 00   872-82 P      ch4     CCGG  1757.810     2.400 N..  CS 1985 02 05 10 55 00  32.8300 -117.2700    14.00    14.00     0.00   118109
+SIO 1985 01 30 22 12 00   872-82 P      ch4     CCGG  1759.330     2.400 N..  CS 1985 02 05 11 34 00  32.8300 -117.2700    14.00    14.00     0.00   118109
+SIO 1985 01 30 22 20 00   884-82 P      ch4     CCGG  1762.230     2.400 N..  CS 1985 02 05 12 14 00  32.8300 -117.2700    14.00    14.00     0.00   118113
+SIO 1985 01 30 22 20 00   884-82 P      ch4     CCGG  1768.620     2.400 N..  CS 1985 02 05 12 53 00  32.8300 -117.2700    14.00    14.00     0.00   118113
+SIO 1985 08 02 00 50 00   510-82 P      ch4     CCGG  1694.060     2.400 ...  CS 1985 08 13 18 33 00  32.8300 -117.2700    14.00    14.00     0.00   118115
+SIO 1985 08 02 00 50 00   510-82 P      ch4     CCGG  1695.680     2.400 ...  CS 1985 08 13 19 17 00  32.8300 -117.2700    14.00    14.00     0.00   118115
+SIO 1985 08 02 00 55 00   710-83 P      ch4     CCGG    30.640     2.400 N..  CS 1985 08 13 19 39 00  32.8300 -117.2700    14.00    14.00     0.00   118117
+SIO 1985 08 02 01 00 00   742-83 P      ch4     CCGG  1698.910     2.400 ...  CS 1985 08 13 14 09 00  32.8300 -117.2700    14.00    14.00     0.00   118119
+SIO 1985 08 02 01 00 00   742-83 P      ch4     CCGG  1695.930     2.400 ...  CS 1985 08 13 14 53 00  32.8300 -117.2700    14.00    14.00     0.00   118119
+SIO 1985 08 02 01 05 00  1012-82 P      ch4     CCGG  1694.310     2.400 ...  CS 1985 08 13 15 37 00  32.8300 -117.2700    14.00    14.00     0.00   118121
+SIO 1985 08 02 01 05 00  1012-82 P      ch4     CCGG  1693.400     2.400 ...  CS 1985 08 13 16 21 00  32.8300 -117.2700    14.00    14.00     0.00   118121
+SIO 1985 08 02 01 11 00  1116-82 P      ch4     CCGG  1691.780     2.400 ...  CS 1985 08 13 16 43 00  32.8300 -117.2700    14.00    14.00     0.00   118123
+SIO 1985 08 02 01 11 00  1116-82 P      ch4     CCGG  1694.640     2.400 ...  CS 1985 08 13 17 27 00  32.8300 -117.2700    14.00    14.00     0.00   118123
+SIO 1985 08 02 01 17 00  1390-82 P      ch4     CCGG  1695.590     2.400 ...  CS 1985 08 13 17 05 00  32.8300 -117.2700    14.00    14.00     0.00   118125
+SIO 1985 08 02 01 17 00  1390-82 P      ch4     CCGG  1693.400     2.400 ...  CS 1985 08 13 17 49 00  32.8300 -117.2700    14.00    14.00     0.00   118125
+SIO 1986 09 25 20 10 00   320-83 P      ch4     CCGG  1736.100     2.400 ...  CS 1986 10 13 14 55 00  32.8300 -117.2700    14.00    14.00     0.00   118127
+SIO 1986 09 25 20 15 00   342-83 P      ch4     CCGG  1726.580     2.400 ...  CS 1986 10 13 15 09 00  32.8300 -117.2700    14.00    14.00     0.00   118129
+SIO 1986 09 25 20 15 00   342-83 P      ch4     CCGG  1735.800     2.400 ...  CS 1986 10 13 15 39 00  32.8300 -117.2700    14.00    14.00     0.00   118129
+SIO 1986 09 25 20 20 00   356-83 P      ch4     CCGG  1739.300     2.400 ...  CS 1986 10 13 13 47 00  32.8300 -117.2700    14.00    14.00     0.00   118131
+SIO 1986 09 25 20 20 00   356-83 P      ch4     CCGG  1732.810     2.400 ...  CS 1986 10 13 14 16 00  32.8300 -117.2700    14.00    14.00     0.00   118131
+SIO 1986 09 25 20 27 00   876-83 P      ch4     CCGG  1732.110     2.400 ...  CS 1986 10 13 14 02 00  32.8300 -117.2700    14.00    14.00     0.00   118133
+SIO 1986 09 25 20 27 00   876-83 P      ch4     CCGG  1731.680     2.400 ...  CS 1986 10 13 14 30 00  32.8300 -117.2700    14.00    14.00     0.00   118133
+SIO 1986 09 25 20 34 00  1138-82 P      ch4     CCGG  1728.240     2.400 ...  CS 1986 10 13 15 25 00  32.8300 -117.2700    14.00    14.00     0.00   118135
+SIO 1986 09 25 20 34 00  1138-82 P      ch4     CCGG  1737.920     2.400 ...  CS 1986 10 13 15 53 00  32.8300 -117.2700    14.00    14.00     0.00   118135
+SIO 1986 09 25 20 40 00  1176-82 P      ch4     CCGG  1737.490     2.400 ...  CS 1986 10 13 16 26 00  32.8300 -117.2700    14.00    14.00     0.00   118137
+SIO 1986 09 25 20 40 00  1176-82 P      ch4     CCGG  1732.220     2.400 ...  CS 1986 10 13 16 55 00  32.8300 -117.2700    14.00    14.00     0.00   118137

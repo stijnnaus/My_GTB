@@ -1,0 +1,174 @@
+# number_of_header_lines: 68
+# comment:  
+# comment:  ************ USE OF ESRL GMD DATA ****************
+# comment:  
+# comment: These data are made freely available to the public and the
+# comment: scientific community in the belief that their wide dissemination
+# comment: will lead to greater understanding and new scientific insights.
+# comment: The availability of these data does not constitute publication
+# comment: of the data.  NOAA relies on the ethics and integrity of the user to
+# comment: insure that ESRL receives fair credit for their work.  If the data 
+# comment: are obtained for potential use in a publication or presentation, 
+# comment: ESRL should be informed at the outset of the nature of this work.  
+# comment: If the ESRL data are essential to the work, or if an important 
+# comment: result or conclusion depends on the ESRL data, co-authorship
+# comment: may be appropriate.  This should be discussed at an early stage in
+# comment: the work.  Manuscripts using the ESRL data should be sent to ESRL
+# comment: for review before they are submitted for publication so we can
+# comment: insure that the quality and limitations of the data are accurately
+# comment: represented.
+# comment:  
+# comment: Every effort is made to produce the most accurate and precise
+# comment: measurements possible.  However, we reserve the right to make
+# comment: corrections to the data based on recalibration of standard gases
+# comment: or for other reasons deemed scientifically justified.
+# comment: 
+# comment: We are not responsible for results and conclusions based on use
+# comment: of these data without regard to this warning.
+# comment: 
+# contact_parameter: CH4 CCGG (Individual Flasks)
+# contact_name: Ed Dlugokencky
+# contact_telephone: (303) 497-6228
+# contact_email: Ed.Dlugokencky@noaa.gov
+# comment: 
+# comment:  ************ COLLABORATORS ***************
+# comment: 
+# comment: NOAA thanks the following collaborators without
+# comment: whom these measurements would not be possible.
+# comment: 
+# collaborator_name: University of Bristol
+# comment: 
+# comment:  ************ RECIPROCITY AGREEMENT ***************
+# comment: 
+# comment: Use of these data implies an agreement to reciprocate.
+# comment: Laboratories making similar measurements agree to make their
+# comment: own data available to the general public and to the scientific
+# comment: community in an equally complete and easily accessible form.
+# comment: Modelers are encouraged to make available to the community,
+# comment: upon request, their own tools used in the interpretation
+# comment: of the ESRL data, namely well documented model code, transport
+# comment: fields, and additional information necessary for other
+# comment: scientists to repeat the work and to run modified versions.
+# comment: Model availability includes collaborative support for new
+# comment: users of the models.
+# comment:
+# comment:  ************ DATA DESCRIPTION ***************
+# comment:
+# description_site-code: tac
+# description_project-abbr: ccg_surface
+# description_strategy-abbr: flask
+# description_sample-constraints: date:1900-01-01,2015-12-31
+# description_creation-time: 2016-07-07 15:33:21
+# comment:
+# comment:  ************ DATA DOCUMENTATION ***************
+# comment:
+# comment: Please refer to the species-specific README file in the
+# comment: appropriate directory folder at ftp://aftp.cmdl.noaa.gov/data/trace_gases/.
+# comment:
+# data_fields: sample_site_code sample_year sample_month sample_day sample_hour sample_minute sample_seconds sample_id sample_method parameter_formula analysis_group_abbr analysis_value analysis_uncertainty analysis_flag analysis_instrument analysis_year analysis_month analysis_day analysis_hour analysis_minute analysis_seconds sample_latitude sample_longitude sample_altitude sample_elevation sample_intake_height event_number
+TAC 2014 06 06 10 55 00   BGF009 N      ch4     CCGG  1923.210     1.100 ... H11 2014 07 17 11 05 00  52.5178    1.1389   236.00    56.00   180.00   370477
+TAC 2014 06 06 10 55 00   BGF010 N      ch4     CCGG  1925.000     1.100 ... H11 2014 07 17 11 21 00  52.5178    1.1389   236.00    56.00   180.00   370478
+TAC 2014 06 13 11 55 00   BGF011 N      ch4     CCGG  1943.400     1.100 ... H11 2014 07 17 11 37 00  52.5178    1.1389   236.00    56.00   180.00   370476
+TAC 2014 06 20 08 35 00   BGF034 N      ch4     CCGG  1888.830     1.100 ... H11 2014 07 17 12 09 00  52.5178    1.1389   236.00    56.00   180.00   370481
+TAC 2014 06 20 08 35 00   BGF035 N      ch4     CCGG  1889.810     1.100 ... H11 2014 07 17 12 25 00  52.5178    1.1389   236.00    56.00   180.00   370482
+TAC 2014 06 27 09 28 00   BGF027 N      ch4     CCGG  1907.300     1.100 ... H11 2014 07 17 12 42 00  52.5178    1.1389   236.00    56.00   180.00   370479
+TAC 2014 06 27 09 28 00   BGF036 N      ch4     CCGG  1908.310     1.100 ... H11 2014 07 17 12 58 00  52.5178    1.1389   236.00    56.00   180.00   370480
+TAC 2014 07 04 08 15 00   BGF045 N      ch4     CCGG  1937.000     1.100 ... H11 2014 08 18 12 11 00  52.5178    1.1389   236.00    56.00   180.00   372142
+TAC 2014 07 04 08 15 00   BGF046 N      ch4     CCGG  1941.790     1.100 ... H11 2014 08 18 12 27 00  52.5178    1.1389   236.00    56.00   180.00   372143
+TAC 2014 07 11 09 50 00   BGF047 N      ch4     CCGG  1886.670     1.100 ... H11 2014 08 18 12 43 00  52.5178    1.1389   236.00    56.00   180.00   372140
+TAC 2014 07 11 09 50 00   BGF048 N      ch4     CCGG  1887.860     1.100 ... H11 2014 08 18 12 59 00  52.5178    1.1389   236.00    56.00   180.00   372141
+TAC 2014 07 15 12 53 00   BGF049 N      ch4     CCGG  1886.720     1.100 ... H11 2014 08 18 13 15 00  52.5178    1.1389   236.00    56.00   180.00   372136
+TAC 2014 07 15 12 53 00   BGF050 N      ch4     CCGG  1886.330     1.100 ... H11 2014 08 18 13 31 00  52.5178    1.1389   236.00    56.00   180.00   372137
+TAC 2014 07 24 08 21 00   BGF051 N      ch4     CCGG  1984.960     1.100 ... H11 2014 08 18 14 20 00  52.5178    1.1389   236.00    56.00   180.00   372138
+TAC 2014 07 24 08 21 00   BGF052 N      ch4     CCGG  1981.960     1.100 ... H11 2014 08 18 14 36 00  52.5178    1.1389   236.00    56.00   180.00   372139
+TAC 2014 08 01 09 01 00   BGF041 N      ch4     CCGG  1900.420     1.100 ... H11 2014 09 24 14 14 00  52.5178    1.1389   236.00    56.00   180.00   374393
+TAC 2014 08 01 09 01 00   BGF042 N      ch4     CCGG  1905.810     1.100 ... H11 2014 09 24 14 30 00  52.5178    1.1389   236.00    56.00   180.00   374394
+TAC 2014 08 07 12 06 00   BGF043 N      ch4     CCGG  1925.840     1.100 ... H11 2014 09 24 13 42 00  52.5178    1.1389   236.00    56.00   180.00   374391
+TAC 2014 08 07 12 06 00   BGF044 N      ch4     CCGG  1925.640     1.100 ... H11 2014 09 24 13 58 00  52.5178    1.1389   236.00    56.00   180.00   374392
+TAC 2014 08 15 09 40 00   BGF029 N      ch4     CCGG  1885.980     1.100 ... H11 2014 09 24 13 10 00  52.5178    1.1389   236.00    56.00   180.00   374389
+TAC 2014 08 15 09 40 00   BGF030 N      ch4     CCGG  1885.100     1.100 ... H11 2014 09 24 13 26 00  52.5178    1.1389   236.00    56.00   180.00   374390
+TAC 2014 08 21 08 40 00   BGF031 N      ch4     CCGG  1939.070     1.100 N.. H11 2014 09 24 12 36 00  52.5178    1.1389   236.00    56.00   180.00   374387
+TAC 2014 08 21 08 40 00   BGF032 N      ch4     CCGG  1929.370     1.100 ... H11 2014 09 24 12 52 00  52.5178    1.1389   236.00    56.00   180.00   374388
+TAC 2014 08 29 11 20 00   BGF025 N      ch4     CCGG  1893.530     1.100 ... H11 2014 11 25 12 29 00  52.5178    1.1389   236.00    56.00   180.00   377536
+TAC 2014 08 29 11 20 00   BGF026 N      ch4     CCGG  1889.310     1.100 ... H11 2014 11 25 12 45 00  52.5178    1.1389   236.00    56.00   180.00   377537
+TAC 2014 09 12 11 32 00   BGF028 N      ch4     CCGG  1927.840     1.100 ... H11 2014 11 25 14 07 00  52.5178    1.1389   236.00    56.00   180.00   377541
+TAC 2014 09 12 11 32 00   BGF056 N      ch4     CCGG  1927.210     1.100 ... H11 2014 11 25 14 23 00  52.5178    1.1389   236.00    56.00   180.00   377540
+TAC 2014 10 09 11 47 00   BGF069 N      ch4     CCGG  1908.370     1.100 ... H11 2014 11 25 11 57 00  52.5178    1.1389   236.00    56.00   180.00   377534
+TAC 2014 10 09 11 47 00   BGF070 N      ch4     CCGG  1906.050     1.100 ... H11 2014 11 25 12 13 00  52.5178    1.1389   236.00    56.00   180.00   377535
+TAC 2014 10 23 11 43 00   BGF071 N      ch4     CCGG  1930.750     1.100 ... H11 2014 11 25 13 33 00  52.5178    1.1389   236.00    56.00   180.00   377538
+TAC 2014 10 23 11 43 00   BGF072 N      ch4     CCGG  1929.030     1.100 ... H11 2014 11 25 13 49 00  52.5178    1.1389   236.00    56.00   180.00   377539
+TAC 2014 10 31 11 42 00   BGF073 N      ch4     CCGG  1971.190     1.100 ... H11 2015 01 20 15 45 00  52.5178    1.1389   236.00    56.00   180.00   379900
+TAC 2014 10 31 11 42 00   BGF075 N      ch4     CCGG  1969.120     1.100 ... H11 2015 01 20 16 01 00  52.5178    1.1389   236.00    56.00   180.00   379901
+TAC 2014 11 21 09 42 00   BGF011 N      ch4     CCGG  2027.680     1.100 ... H11 2015 01 20 16 17 00  52.5178    1.1389   236.00    56.00   180.00   379898
+TAC 2014 11 21 09 42 00   BGF034 N      ch4     CCGG  2025.620     1.100 ... H11 2015 01 20 16 33 00  52.5178    1.1389   236.00    56.00   180.00   379899
+TAC 2014 11 28 12 09 00   BGF041 N      ch4     CCGG  2131.130     1.100 ... H11 2015 01 20 15 13 00  52.5178    1.1389   236.00    56.00   180.00   379896
+TAC 2014 11 28 12 09 00   BGF042 N      ch4     CCGG  2133.520     1.100 ... H11 2015 01 20 15 29 00  52.5178    1.1389   236.00    56.00   180.00   379897
+TAC 2014 12 03 11 23 00   BGF043 N      ch4     CCGG  1916.980     1.100 ... H11 2015 01 20 14 41 00  52.5178    1.1389   236.00    56.00   180.00   379894
+TAC 2014 12 03 11 23 00   BGF044 N      ch4     CCGG  1917.700     1.100 ... H11 2015 01 20 14 57 00  52.5178    1.1389   236.00    56.00   180.00   379895
+TAC 2014 12 11 12 03 00   BGF017 N      ch4     CCGG  1925.150     1.100 ... H11 2015 03 23 15 28 00  52.5178    1.1389   236.00    56.00   180.00   382907
+TAC 2014 12 11 12 03 00   BGF038 N      ch4     CCGG  1922.560     1.100 ... H11 2015 03 23 15 44 00  52.5178    1.1389   236.00    56.00   180.00   382906
+TAC 2014 12 18 12 23 00   BGF059 N      ch4     CCGG  1901.080     1.100 ... H11 2015 03 23 14 56 00  52.5178    1.1389   236.00    56.00   180.00   382903
+TAC 2014 12 18 12 23 00   BGF061 N      ch4     CCGG  1899.200     1.100 ... H11 2015 03 23 15 12 00  52.5178    1.1389   236.00    56.00   180.00   382904
+TAC 2015 01 09 09 32 00   BGF002 N      ch4     CCGG  1926.180     1.100 ... H11 2015 03 23 14 24 00  52.5178    1.1389   236.00    56.00   180.00   382901
+TAC 2015 01 09 09 32 00   BGF004 N      ch4     CCGG  1927.530     1.100 ... H11 2015 03 23 14 40 00  52.5178    1.1389   236.00    56.00   180.00   382902
+TAC 2015 01 15 15 32 00   BGF018 N      ch4     CCGG  1923.910     1.100 ... H11 2015 03 24 11 05 00  52.5178    1.1389   236.00    56.00   180.00   382905
+TAC 2015 01 22 11 52 00   BGF032 N      ch4     CCGG  2012.980     1.100 ... H11 2015 04 06 12 47 00  52.5178    1.1389   236.00    56.00   180.00   383940
+TAC 2015 01 22 11 52 00   BGF051 N      ch4     CCGG  2020.450     1.100 ... H11 2015 04 06 13 02 00  52.5178    1.1389   236.00    56.00   180.00   383939
+TAC 2015 01 28 13 52 00   BGF050 N      ch4     CCGG  1917.530     1.100 ... H11 2015 04 06 13 18 00  52.5178    1.1389   236.00    56.00   180.00   383937
+TAC 2015 01 28 13 52 00   BGF052 N      ch4     CCGG  1917.790     1.100 ... H11 2015 04 06 13 34 00  52.5178    1.1389   236.00    56.00   180.00   383938
+TAC 2015 02 17 15 58 00   BGF035 N      ch4     CCGG  1945.860     1.100 N.. H11 2015 04 06 12 15 00  52.5178    1.1389   236.00    56.00   180.00   383941
+TAC 2015 02 17 15 58 00   BGF045 N      ch4     CCGG  1934.650     1.100 N.. H11 2015 04 06 12 31 00  52.5178    1.1389   236.00    56.00   180.00   383942
+TAC 2015 03 03 13 06 00   BGF030 N      ch4     CCGG  1930.750     1.100 ... H11 2015 04 23 13 08 00  52.5178    1.1389   236.00    56.00   180.00   384906
+TAC 2015 03 03 13 06 00   BGF048 N      ch4     CCGG  1925.330     1.100 ... H11 2015 04 23 13 24 00  52.5178    1.1389   236.00    56.00   180.00   384907
+TAC 2015 03 09 13 01 00   BGF046 N      ch4     CCGG  1965.940     1.100 ... H11 2015 04 06 11 43 00  52.5178    1.1389   236.00    56.00   180.00   383944
+TAC 2015 03 09 13 01 00   BGF070 N      ch4     CCGG  1962.700     1.100 ... H11 2015 04 06 11 59 00  52.5178    1.1389   236.00    56.00   180.00   383943
+TAC 2015 03 13 10 25 00   BGF008 N      ch4     CCGG  2041.900     1.100 ... H11 2015 04 23 11 31 00  52.5178    1.1389   236.00    56.00   180.00   384902
+TAC 2015 03 13 10 25 00   BGF060 N      ch4     CCGG  2034.560     1.100 ... H11 2015 04 23 11 47 00  52.5178    1.1389   236.00    56.00   180.00   384903
+TAC 2015 03 20 09 46 00   BGF006 N      ch4     CCGG  1965.230     1.100 ... H11 2015 04 23 12 35 00  52.5178    1.1389   236.00    56.00   180.00   384904
+TAC 2015 03 20 09 46 00   BGF058 N      ch4     CCGG  1964.780     1.100 ... H11 2015 04 23 12 50 00  52.5178    1.1389   236.00    56.00   180.00   384905
+TAC 2015 03 26 14 50 00   BGF037 N      ch4     CCGG  1925.690     1.100 ... H11 2015 04 23 12 03 00  52.5178    1.1389   236.00    56.00   180.00   384908
+TAC 2015 03 26 14 50 00   BGF053 N      ch4     CCGG  1924.930     1.100 ... H11 2015 04 23 12 19 00  52.5178    1.1389   236.00    56.00   180.00   384909
+TAC 2015 04 01 10 46 00   BGF022 N      ch4     CCGG  1931.840     1.100 ... H11 2015 08 07 12 02 00  52.5178    1.1389   236.00    56.00   180.00   390948
+TAC 2015 04 01 10 46 00   BGF024 N      ch4     CCGG  1927.570     1.100 ... H11 2015 08 07 12 18 00  52.5178    1.1389   236.00    56.00   180.00   390937
+TAC 2015 05 07 13 46 00   BGF021 N      ch4     CCGG  1924.500     1.100 ... H11 2015 08 07 12 34 00  52.5178    1.1389   236.00    56.00   180.00   390935
+TAC 2015 05 07 13 46 00   BGF023 N      ch4     CCGG  1922.000     1.100 ... H11 2015 08 07 12 50 00  52.5178    1.1389   236.00    56.00   180.00   390936
+TAC 2015 05 15 10 26 00   BGF011 N      ch4     CCGG  1905.020     1.100 ... H11 2015 08 07 13 06 00  52.5178    1.1389   236.00    56.00   180.00   390946
+TAC 2015 05 15 10 26 00   BGF075 N      ch4     CCGG  1903.450     1.100 ... H11 2015 08 07 13 22 00  52.5178    1.1389   236.00    56.00   180.00   390947
+TAC 2015 05 29 08 50 00   BGF034 N      ch4     CCGG  1947.920     1.100 ... H11 2015 08 07 13 37 00  52.5178    1.1389   236.00    56.00   180.00   390940
+TAC 2015 05 29 08 50 00   BGF073 N      ch4     CCGG  1945.420     1.100 ... H11 2015 08 07 13 53 00  52.5178    1.1389   236.00    56.00   180.00   390941
+TAC 2015 06 03 13 30 00   BGF041 N      ch4     CCGG  1915.970     1.100 ... H11 2015 09 24 11 14 00  52.5178    1.1389   236.00    56.00   180.00   394083
+TAC 2015 06 03 13 30 00   BGF044 N      ch4     CCGG  1914.220     1.100 ... H11 2015 09 24 11 30 00  52.5178    1.1389   236.00    56.00   180.00   394084
+TAC 2015 06 29 09 30 00   BGF063 N      ch4     CCGG  1920.380     1.100 ... H11 2015 09 24 12 49 00  52.5178    1.1389   236.00    56.00   180.00   394082
+TAC 2015 07 06 10 42 00   BGF046 N      ch4     CCGG  1905.240     1.100 ... H11 2015 09 24 11 46 00  52.5178    1.1389   236.00    56.00   180.00   394085
+TAC 2015 07 06 10 42 00   BGF052 N      ch4     CCGG  1904.820     1.100 ... H11 2015 09 24 12 02 00  52.5178    1.1389   236.00    56.00   180.00   394086
+TAC 2015 07 28 12 40 00   BGF050 N      ch4     CCGG  1933.690     1.100 ... H11 2015 09 24 12 18 00  52.5178    1.1389   236.00    56.00   180.00   394087
+TAC 2015 07 28 12 40 00   BGF070 N      ch4     CCGG  1935.380     1.100 ... H11 2015 09 24 12 33 00  52.5178    1.1389   236.00    56.00   180.00   394088
+TAC 2015 08 03 13 52 00   BGF053 N      ch4     CCGG  1891.520     1.100 ... H11 2015 09 23 14 18 00  52.5178    1.1389   236.00    56.00   180.00   394089
+TAC 2015 08 03 13 52 00   BGF060 N      ch4     CCGG  1892.030     1.100 ... H11 2015 09 23 14 34 00  52.5178    1.1389   236.00    56.00   180.00   394090
+TAC 2015 08 14 10 46 00   BGF008 N      ch4     CCGG  2082.730     1.100 N.. H11 2015 09 23 14 49 00  52.5178    1.1389   236.00    56.00   180.00   394091
+TAC 2015 08 14 10 46 00   BGF037 N      ch4     CCGG  2062.300     1.100 N.. H11 2015 09 23 15 05 00  52.5178    1.1389   236.00    56.00   180.00   394092
+TAC 2015 08 20 09 29 00   BGF036 N      ch4     CCGG  1935.720     1.100 ... H11 2015 09 23 16 57 00  52.5178    1.1389   236.00    56.00   180.00   394095
+TAC 2015 08 20 09 29 00   BGF062 N      ch4     CCGG  1936.290     1.100 ... H11 2015 09 23 17 13 00  52.5178    1.1389   236.00    56.00   180.00   394096
+TAC 2015 08 28 09 15 00   BGF015 N      ch4     CCGG  1915.320     1.100 ... H11 2015 09 24 10 39 00  52.5178    1.1389   236.00    56.00   180.00   394093
+TAC 2015 08 28 09 15 00   BGF016 N      ch4     CCGG  1917.450     1.100 ... H11 2015 09 24 10 55 00  52.5178    1.1389   236.00    56.00   180.00   394094
+TAC 2015 09 14 08 48 00   BGF030 N      ch4     CCGG  1975.380     1.100 ... H11 2015 10 27 13 49 00  52.5178    1.1389   236.00    56.00   180.00   396262
+TAC 2015 09 14 08 48 00   BGF039 N      ch4     CCGG  1972.990     1.100 ... H11 2015 10 27 14 05 00  52.5178    1.1389   236.00    56.00   180.00   396263
+TAC 2015 09 18 09 03 00   BGF058 N      ch4     CCGG  1949.090     1.100 ... H11 2015 11 03 16 20 00  52.5178    1.1389   236.00    56.00   180.00   396259
+TAC 2015 09 23 13 46 00   BGF032 N      ch4     CCGG  1938.790     1.100 ... H11 2015 10 27 14 53 00  52.5178    1.1389   236.00    56.00   180.00   396260
+TAC 2015 09 23 13 46 00   BGF051 N      ch4     CCGG  1938.000     1.100 ... H11 2015 10 27 15 08 00  52.5178    1.1389   236.00    56.00   180.00   396261
+TAC 2015 10 05 08 55 00   BGF031 N      ch4     CCGG  1977.940     1.100 ... H11 2015 10 27 14 21 00  52.5178    1.1389   236.00    56.00   180.00   396265
+TAC 2015 10 05 08 55 00   BGF045 N      ch4     CCGG  1987.120     1.100 ... H11 2015 10 27 14 37 00  52.5178    1.1389   236.00    56.00   180.00   396264
+TAC 2015 10 09 09 16 00   BGF118 N      ch4     CCGG  1935.000     1.100 ... H11 2015 12 04 14 16 00  52.5178    1.1389   236.00    56.00   180.00   398418
+TAC 2015 10 09 09 16 00   BGF120 N      ch4     CCGG  1936.060     1.100 ... H11 2015 12 04 14 31 00  52.5178    1.1389   236.00    56.00   180.00   398419
+TAC 2015 10 16 09 40 00   BGF119 N      ch4     CCGG  1958.890     1.100 ... H11 2015 12 04 13 44 00  52.5178    1.1389   236.00    56.00   180.00   398420
+TAC 2015 10 16 09 40 00   BGF126 N      ch4     CCGG  1957.620     1.100 ... H11 2015 12 04 14 00 00  52.5178    1.1389   236.00    56.00   180.00   398421
+TAC 2015 10 23 09 20 00   BGF114 N      ch4     CCGG  1930.350     1.100 ... H11 2015 12 04 12 26 00  52.5178    1.1389   236.00    56.00   180.00   398414
+TAC 2015 10 23 09 20 00   BGF122 N      ch4     CCGG  1930.000     1.100 ... H11 2015 12 04 12 42 00  52.5178    1.1389   236.00    56.00   180.00   398415
+TAC 2015 10 29 14 42 00   BGF075 N      ch4     CCGG  1939.180     1.100 ... H11 2015 12 04 12 58 00  52.5178    1.1389   236.00    56.00   180.00   398416
+TAC 2015 10 29 14 42 00   BGF121 N      ch4     CCGG  1939.350     1.100 ... H11 2015 12 04 13 14 00  52.5178    1.1389   236.00    56.00   180.00   398417
+TAC 2015 11 06 13 05 00   BGF011 N      ch4     CCGG  1940.030     1.100 ... H11 2016 01 26 12 05 00  52.5178    1.1389   236.00    56.00   180.00   400599
+TAC 2015 11 06 13 05 00   BGF021 N      ch4     CCGG  1938.990     1.100 ... H11 2016 01 26 12 21 00  52.5178    1.1389   236.00    56.00   180.00   400598
+TAC 2015 11 12 10 10 00   BGF022 N      ch4     CCGG  1940.710     1.100 ... H11 2016 01 26 11 33 00  52.5178    1.1389   236.00    56.00   180.00   400596
+TAC 2015 11 12 10 10 00   BGF023 N      ch4     CCGG  1942.080     1.100 ... H11 2016 01 26 11 49 00  52.5178    1.1389   236.00    56.00   180.00   400597
+TAC 2015 12 18 10 30 00   BGF044 N      ch4     CCGG  1944.520     1.100 ... H11 2016 01 26 10 30 00  52.5178    1.1389   236.00    56.00   180.00   400595
+TAC 2015 12 18 10 30 00   BGF050 N      ch4     CCGG  1945.480     1.100 ... H11 2016 01 26 10 46 00  52.5178    1.1389   236.00    56.00   180.00   400594
