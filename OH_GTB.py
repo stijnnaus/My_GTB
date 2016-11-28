@@ -17,6 +17,7 @@ from copy import *
 from numpy import linalg
 from scipy import optimize
 
+red = 1e-3
 def calculate_J(xp):
     x = precon_to_state(xp)
     con = forward_all(x)
@@ -24,17 +25,19 @@ def calculate_J(xp):
     dep_c12,J_c12,J_list_c12 = cost_c12(con)
     dep_c13,J_c13,J_list_c13 = cost_c13(con)
     
-    J_obs = J_mcf + J_c12 + J_c13 # mismatch with obs
-    J_pri = sum(dot(b_inv, ( x - x_prior )**2)) # prior
-    J_tot = .5 * ( J_pri + J_obs )
-    print 'Cost function value:',J_tot
-    return J_tot
+    J_obs = J_mcf + J_c12 + J_c13 # mismatch with ob
     
+    J_pri = sum(background(x)) # prior
+    J_tot = .5 * ( J_pri + J_obs )
+    print 'Cost function value:',J_tot*red
+    return J_tot*red
 
+def background(x):
+    return dot(b_inv, ( x - x_prior )**2)
     
 def calculate_dJdx(xp):
     x = precon_to_state(xp)
-    foh = x[:nt]
+    _, _, _, foh, _, _, _, _ = unpack(x)
     mcf_save,c12_save,c13_save = forward_all(x)
     
     con = forward_all(x)
@@ -43,22 +46,22 @@ def calculate_dJdx(xp):
     dep_c13,J_c13,J_list_c13 = cost_c13(con)
     dep = [dep_mcf,dep_c12,dep_c13]
     
-    dfoh_mcf,dmcfi,dfmcf = adjoint_model_mcf( dep_mcf, foh, mcf_save )
-    dfoh_c12,dc12i,dfc12 = adjoint_model_c12( dep_c12, foh, c12_save )
-    dfoh_c13,dc13i,dfc13 = adjoint_model_c13( dep_c13, foh, c13_save )
+    dmcf0,dfoh_mcf,dfst,dfsl = adjoint_model_mcf( dep_mcf, foh, mcf_save )
+    dc120,dfoh_c12,dfc12 = adjoint_model_c12( dep_c12, foh, c12_save )
+    dc130,dfoh_c13,dfc13 = adjoint_model_c13( dep_c13, foh, c13_save )
     dfoh = dfoh_mcf + dfoh_c12 + dfoh_c13
     
-    dJdx_obs = np.concatenate((dfoh, dmcfi, dfmcf, \
-                                dc12i, dfc12, dc13i, dfc13))
+    dJdx_obs = np.concatenate((dmcf0, dc120, dc130, dfoh, \
+                                dfst, dfsl, dfc12, dfc13))
     dJdx_pri = dot(b_inv, (x-x_prior))
     dJdx = dJdx_obs + dJdx_pri
     dJdxp = dot( L_adj, dJdx )
-    print 'Cost function deriv:',max(dJdxp)
-    return dJdxp
+    print 'Cost function deriv:',max(dJdxp)*red
+    return dJdxp*red
 
 def adjoint_model_mcf( dep, foh, mcf_save ):
     pulse_mcf = adj_obs_oper( dep )
-    dmcf,dfmcf,dfoh = zeros(nt),zeros(nt),zeros(nt)
+    dmcf,dfst,dfsl,dfoh = zeros(nt),zeros(nt),zeros(nt),zeros(nt)
     dmcfi = 0.
     rapidc = rapid / conv_mcf
     
@@ -74,17 +77,18 @@ def adjoint_model_mcf( dep, foh, mcf_save ):
         dmcfi   = dmcfi *  (1. - foh[i] * l_mcf_oh - l_mcf_strat - l_mcf_ocean)
         dmcf[i] = dmcfi
         
-        # Emissions
-        adjem = - 0.75 * rapidc[ie] * dmcf[i]
-        if (iyear + 1) < edyear: adjem -= 0.25 * rapidc[ie] * dmcf[i+1]
-
+        # Emissions stock
+        dfst[i] = - 0.75 * rapidc[ie] * dmcf[i]
+        if (iyear + 1) < edyear: dfst[i] -= 0.25 * rapidc[ie] * dmcf[i+1]
         for yearb in range(iyear+1 , iyear+11):
             i2  = yearb - styear
             ie2 = yearb - 1951
-            if yearb < edyear: adjem += 0.1 * rapidc[ie] * dmcf[i2]
-        dfmcf[i] = adjem
+            if yearb < edyear: dfst[i] += 0.1 * rapidc[ie] * dmcf[i2]
+        # Emissions slow
+        dfsl[i] = - 0.75 * rapidc[ie] * dmcfi
+        if (iyear + 2) < edyear: dfsl[i] += 0.75 * rapidc[ie] * dmcf[i+2]
             
-    adj_mcf = [dfoh, array([dmcfi]), dfmcf]
+    adj_mcf = [array([dmcfi]),dfoh,dfst,dfsl]
     return adj_mcf
     
 def adjoint_model_c12( dep, foh, c12_save ):
@@ -92,7 +96,7 @@ def adjoint_model_c12( dep, foh, c12_save ):
     em0_12 = em0_c12 / conv_ch4
     
     df12,dfoh = zeros(nt),zeros(nt)
-    dc12i = 0
+    dc12i = 0.
     
     for iyear in range(edyear-1, styear-1, -1):
         i = iyear-styear
@@ -103,7 +107,7 @@ def adjoint_model_c12( dep, foh, c12_save ):
         
         df12[i] = em0_12[i] * dc12i
         
-    adj_c12 = [dfoh, array([dc12i]), df12]
+    adj_c12 = [array([dc12i]), dfoh, df12]
     return adj_c12
     
 def adjoint_model_c13( dep, foh, c13_save ):
@@ -111,7 +115,7 @@ def adjoint_model_c13( dep, foh, c13_save ):
     em0_13 = em0_c13 / conv_c13
     
     df13,dfoh = zeros(nt),zeros(nt)
-    dc13i = 0
+    dc13i = 0.
     
     for iyear in range(edyear-1, styear-1, -1):
         i = iyear - styear
@@ -122,7 +126,7 @@ def adjoint_model_c13( dep, foh, c13_save ):
         
         df13[i] = em0_13[i] * dc13i
         
-    adj_c13 = [dfoh, array([dc13i]), df13]
+    adj_c13 = [array([dc13i]), dfoh, df13]
     return adj_c13
 
 def cost_mcf(con):
@@ -171,23 +175,24 @@ def calc_mismatch(x):
     return C,array(C_obs - con_data)
 
 def forward_tl_mcf(x, foh, mcf_save):
-    dfoh, dmcf0, dfmcf = x[:nt], x[nt], x[nt+1:2*nt+1]
+    mcf0, _, _, foh, fst, fsl, _, _ = unpack(x)
     
-    dmcfs = zeros(nt); dmcfi = dmcf0
+    dmcfs = zeros(nt); dmcfi = mcf0
     rapidc = rapid/conv_mcf
     
     for year in range(styear,edyear):
         i  = year - styear
         ie = year - 1951
-        
-        # Emissions
-        dmcfi -= 0.75 * rapidc[ie] * dfmcf[i]
-        if year > styear: dmcfi -= 0.25 * rapidc[ie-1] * dfmcf[i-1]
+        # Emissions stock
+        dmcfi -= 0.75 * rapidc[ie] * dfst[i]
+        if i >= 1: dmcfi -= 0.25 * rapidc[ie-1] * dfst[i-1]
         for yearb in range(year-1,year-11,-1):
             i2  = yearb - styear
             ie2 = yearb - 1951
-            if yearb >= styear: dmcfi += 0.1*dfmcf[i2]*rapidc[ie2]
-                
+            if yearb >= styear: dmcfi += 0.1*dfst[i2]*rapidc[ie2]
+        # Emissions slow
+        dmcfi -= 0.75 * rapidc[ie] * dfsl[i]
+        if i >= 2: dmcfi += 0.75 * rapidc[ie-2] * dfsl[i-2]
 #        # Chemistry
         dmcfi = dmcfi * ( 1. - l_mcf_ocean - l_mcf_strat - l_mcf_oh * foh[i] ) - \
                 dfoh[i] * mcf_save[i] * l_mcf_oh
@@ -196,10 +201,10 @@ def forward_tl_mcf(x, foh, mcf_save):
     return dmcfs
     
 def forward_tl_c12(x, foh, c12_save):
-    dfoh, dc12_0, dfc12 = x[:nt], x[2*nt+1], x[2*nt+2 : 3*nt+2]
+    _, c120, _, foh, _, _, fc12, _ = unpack(x)
     dem_12 = dfc12 * (em0_c12 / conv_ch4)
     
-    dc12s = []; dc12 = dc12_0
+    dc12s = []; dc12 = c120
     for year in range(styear,edyear):
         i = year - styear
         dc12 += dem_12[i]
@@ -210,10 +215,10 @@ def forward_tl_c12(x, foh, c12_save):
     return array(dc12s)
     
 def forward_tl_c13(x, foh, c13_save):
-    dfoh, dc13_0, dfc13 = x[:nt], x[3*nt+2], x[3*nt+3 : 4*nt+3]
+    _, _, c130, foh, _, _, _, fc13 = unpack(x)
     dem_c13 = dfc13 * (em0_c13 / conv_c13)
     
-    dc13s = []; dc13 = dc13_0
+    dc13s = []; dc13 = c130
     for year in range(styear,edyear):
         i = year - styear
         dc13 += dem_c13[i]
@@ -228,24 +233,24 @@ def forward_all(x):
     return C_mcf,C_c12,C_c13
 
 def forward_mcf(x):
-    foh, mcf0, fmcf = x[:nt], x[nt], x[nt+1:2*nt+1]
-    em = em0_mcf + mcf_shift(fmcf)
+    mcf0, _, _, foh, fst, fsl, _, _ = unpack(x)
+    em = em0_mcf + mcf_shift(fst, fsl)
     em /= conv_mcf
     
     mcfs = []; mcf = mcf0
     for year in range(styear,edyear):
         i = year - styear
         mcf += em[i]
-        mcf = mcf * ( 1 - l_mcf_ocean - l_mcf_strat - l_mcf_oh * foh[i] )
+        mcf = mcf * ( 1 - l_mcf_oh * foh[i] - l_mcf_ocean - l_mcf_strat )
         mcfs.append(mcf)
         
     return array(mcfs)
     
 def forward_c12(x):
-    foh, c12_0, fc12 = x[:nt], x[2*nt+1], x[2*nt+2 : 3*nt+2]
+    _, c120, _, foh, _, _, fc12, _ = unpack(x)
     em_c12 = fc12 * (em0_c12 / conv_ch4)
     
-    c12s = []; c12 = c12_0
+    c12s = []; c12 = c120
     for year in range(styear,edyear):
         i = year - styear
         c12 += em_c12[i]
@@ -255,10 +260,10 @@ def forward_c12(x):
     return array(c12s)
    
 def forward_c13(x):
-    foh, c13_0, fc13 = x[:nt], x[3*nt+2], x[3*nt+3 : 4*nt+3]
+    _, _, c130, foh, _, _, _, fc13 = unpack(x)
     em_c13 = fc13 * (em0_c13 / conv_c13)
     
-    c13s = []; c13 = c13_0
+    c13s = []; c13 = c130
     for year in range(styear,edyear):
         i = year - styear
         c13 += em_c13[i]
@@ -267,22 +272,26 @@ def forward_c13(x):
     
     return array(c13s)
 
-def mcf_shift(f_mcf):
+def mcf_shift(fst, fsl):
     '''
     Computes the shift in emissions that results from repartitioning of the production
-    f_mcf: the fraction of rapid emissions that is instead stockpiled (ntx1 array)
+    fst: the fraction of rapid emissions that is instead stockpiled
+    fsl: the fraction of rapid emissions that is instead released as slow
     ''' 
     shifts = []
     for year in range(styear,edyear):
-        fyear = year - styear # Index in f_mcf
-        eyear = year - 1951 # Index in emissions
-        shift = - 0.75 * rapid[eyear] * f_mcf[fyear]
-        if (fyear - 1) >= 0: shift -= 0.25 * rapid[eyear-1] * f_mcf[fyear-1]
-        # Stockpiling
+        i = year - styear # Index in fsl and fst
+        ie = year - 1951  # Index in emissions
+        # Stock
+        shift = - 0.75 * rapid[ie] * fst[i]
+        if i >= 1: shift -= 0.25 * rapid[ie-1] * fst[i-1]
         for yearb in range(year-1,year-11,-1):
-            fyear2 = yearb - styear  
-            eyear2 = yearb - 1951
-            if fyear2 >= 0: shift += 0.1*f_mcf[fyear2]*rapid[eyear2]
+            i2 = yearb - styear  
+            ie2 = yearb - 1951
+            if i2 >= 0: shift += 0.1 * fst[i2] * rapid[ie2]
+        # Slow
+        shift -= 0.75 * rapid[ie] * fsl[i]
+        if i >= 2: shift += 0.75 * rapid[ie-2] * fsl[i-2]
         shifts.append(shift)
     
     return array(shifts)
@@ -377,12 +386,12 @@ def unpack(x):
     '''
     Unpacks the state vector. Returns the respective components.
     '''
-    foh = x[:nt]
-    mcfi,c12i,c13i = x[nt],x[2*nt+1],x[3*nt+2]
-    fst,fc12,fc13 = x[nt+1:2*nt+1],x[2*nt+2:3*nt+2],x[3*nt+3:4*nt+3]
-    fsl = x[4*nt+3:5*nt+3]
+    mcf0,c120,c130 = x[0],x[1],x[2]
+    foh = x[3:nt+3]
+    fstock,fslow = x[nt+3:2*nt+3],x[2*nt+3:3*nt+3]
+    fc12,fc13 = x[3*nt+3:4*nt+3],x[4*nt+3:5*nt+3]
     
-    return foh, mcfi, fmcf, c12i, fc12, c13i, fc13    
+    return mcf0, c120, c130, foh, fstock, fslow, fc12, fc13    
 
 # setup model variables, emissions, etc:
 exp_name = '_Loose_Prior'
@@ -396,7 +405,7 @@ conv_ch4 = xch4 / 10**9  * m / xmair # kg/ppb
 conv_c13 = xc13 / 10**9  * m / xmair # kg/ppb
 l_mcf_ocean = 1./83.0  # loss rate yr-1
 l_mcf_strat = 1./45.0
-oh = 0.70e6  # molecules/cm3
+oh = .9*1e6  # molecules/cm3
 temp = 272.0  # Kelvin        #
 l_mcf_oh = (1.64e-12*exp(-1520.0/temp))*oh  # in s-1
 l_ch4_oh = (2.45e-12*exp(-1775.0/temp))*oh  
@@ -437,39 +446,43 @@ ch40_prior = ch4_obs[0] / 1.01
 d13c0_prior = d13c_obs[0]
 c120_prior,c130_prior = deltot_to_split(ch40_prior,d13c0_prior)
 c120_prior,c130_prior = array([c120_prior]),array([c130_prior])
-foh_prior  = ones(nt)
-fmcf_prior = zeros(nt)
-f12_prior  = ones(nt)
-f13_prior  = ones(nt)
+foh_prior = ones(nt)
+fsl_prior = zeros(nt)
+fst_prior = zeros(nt)
+f12_prior = ones(nt)
+f13_prior = ones(nt)
 
-x_prior = concatenate((foh_prior, mcf0_prior, fmcf_prior, \
-                        c120_prior, f12_prior, c130_prior, f13_prior))
+x_prior = concatenate((mcf0_prior, c120_prior, c130_prior, foh_prior, \
+                       fst_prior,  fsl_prior,  f12_prior,  f13_prior))
 
 nstate = len(x_prior)
 # Constructing the prior error matrix b
 b = zeros((nstate,nstate))
-error_oh = .2
-error_e_mcf = 1.2; error_e_c12 = 1.2; error_e_c13 = 1.2 # emission errors
-error_mcf0 = 1.2; error_c120 = 1.2; error_c130 = 1.4 # error in initial concentration
+error_oh = .05
+error_e_st = .02; error_e_sl = .02   # mcf emission errors
+error_e_c12 = .05; error_e_c13 = .05 # ch4 emission errors
+error_mcf0 = .5; error_c120 = .5; error_c130 = .5 # error in initial concentration
 corlen_oh = 1. 
 corlen_em = 1.
 
-b[nt,nt] = (x_prior[nt]*error_mcf0)**2
-b[2*nt+1, 2*nt+1] = (x_prior[2*nt+1]*error_c120)**2
-b[3*nt+2, 3*nt+2] = (x_prior[3*nt+2]*error_c130)**2
-for i in range(0,nt):
+b[0,0] = (x_prior[0]*error_mcf0)**2
+b[1, 1] = (x_prior[1]*error_c120)**2
+b[2, 2] = (x_prior[2]*error_c130)**2
+for i in range(3, nt+3):
     b[i,i] = error_oh**2
     for j in range(0,i):
         b[i,j] = exp(-(i-j)/corlen_oh)*(error_oh)**2
         b[j,i] = b[i,j]
-for i in range(nt+1, 2*nt+1):
-    b[i,i] = error_e_mcf**2
-for i in range(2*nt+2,3*nt+2): 
+for i in range(nt+3, 2*nt+3):
+    b[i,i] = error_e_st**2
+for i in range(2*nt+3,3*nt+3):
+    b[i,i] = error_e_sl**2
+for i in range(3*nt+3,4*nt+3): 
     b[i,i] = error_e_c12**2
-    for j in range(2*nt+2,i):
+    for j in range(3*nt+3,i):
         b[i,j] = exp(-(i-j)/corlen_em)*(error_e_c12)**2
         b[j,i] = b[i,j]
-for i in range(3*nt+3,4*nt+3): 
+for i in range(4*nt+3,5*nt+3): 
     b[i,i] = error_e_c13**2
     for j in range(3*nt+3,i):
         b[i,j] = exp(-(i-j)/corlen_em)*(error_e_c13)**2
@@ -487,11 +500,7 @@ start = time.time()
 xp_opt = optimize.fmin_bfgs(calculate_J,xp_prior,calculate_dJdx, gtol=1e-4)
 x_opt = precon_to_state(xp_opt)
 end   = time.time()
-print 10**3*(end-start),'ms'
-
-#plt.figure()
-#plt.plot(x_prior)
-#plt.plot(x_opt)
+print 'Optimization run time:',10**3*(end-start),'ms'
 
 mcf_prior = forward_mcf(x_prior)
 c12_prior,c13_prior = forward_c12(x_prior),forward_c13(x_prior)
@@ -578,14 +587,17 @@ ax1.legend(loc='best')
 plt.savefig('MCF_concentrations'+exp_name)
 
 # Plotting prior state vs optimized state
-foh_opt, mcf0_opt, fmcf_opt = x_opt[:nt], x_opt[nt], x_opt[nt+1:2*nt+1]
-c120_opt, f12_opt = x_opt[2*nt+1], x_opt[2*nt+2:3*nt+2]
-c130_opt, f13_opt = x_opt[3*nt+2], x_opt[3*nt+3:4*nt+4]
+
+mcf0_opt, c120_opt, c130_opt, foh_opt, fst_opt, fsl_opt, f12_opt, f13_opt = unpack(x_opt)  
+em0_opt = em0 + mcf_shift( fst_opt, fsl_opt )
+mcf_dev = em0_opt/em0 - 1.
+
 
 oh_prior, oh_opt = foh_prior*oh/1.e6, foh_opt*oh/1.e6
 errors_oh = np.array([error_oh]*nt)*oh_prior
-emcf_prior, emcf_opt = em0_mcf + mcf_shift(fmcf_prior), em0_mcf + mcf_shift(fmcf_opt)
-errors_e_mcf = np.array([error_e_mcf]*nt)*emcf_prior
+emcf_prior, emcf_opt = em0_mcf + mcf_shift(fst_prior,fsl_prior), em0_mcf + mcf_shift(fst_opt,fst_opt)
+error_e_mcf = sqrt(error_e_st**2 + error_e_sl**2)
+errors_e_mcf = array([error_e_mcf]*nt)*emcf_prior
 ec12_prior, ec12_opt = f12_prior * em0_c12, f12_opt * em0_c12
 ec13_prior, ec13_opt = f13_prior * em0_c13, f13_opt * em0_c13
 ec12_error, ec13_error = error_e_c12 * em0_c12, error_e_c13 * em0_c13
@@ -629,22 +641,21 @@ ax2.plot( range(styear,edyear), ed13c_opt  , 'o-', color = 'green', label = 'Opt
 ax2.legend(loc='best')
 plt.savefig('emi_CH4_d13C_prior_opt'+exp_name)
 
-
 rel_dev = (x_opt - x_prior)
 fig = plt.figure(figsize = figSize)
 ax1 = fig.add_subplot(111)
 ax1.set_title('Relative deviations from prior')
 ax1.set_xlabel('Year')
 ax1.set_ylabel('Relative deviation (%)')
-ax1.plot( range(styear,edyear), rel_dev[:nt], 'o-', color = 'blue', label = 'OH')
-ax1.plot( range(styear,edyear), rel_dev[nt+1:2*nt+1], 'o-', color = 'green', label = 'MCF' )
-ax1.plot( range(styear,edyear), rel_dev[2*nt+2:3*nt+2], 'o-', color = 'red', label = r'$^{12}$CH$_4$' )
-ax1.plot( range(styear,edyear), rel_dev[3*nt+3:4*nt+3], 'o-', color = 'maroon', label = r'$^{13}$CH$_4$' )
+ax1.plot( range(styear,edyear), 100.*(foh_opt - foh_prior), 'o-', color = 'blue', label = 'OH')
+ax1.plot( range(styear,edyear), 100.*mcf_dev, 'o-', color = 'green', label = 'MCF' )
+ax1.plot( range(styear,edyear), 100.*(f12_opt - f12_prior), 'o-', color = 'red', label = r'$^{12}$CH$_4$' )
+ax1.plot( range(styear,edyear), 100.*(f13_opt - f13_prior), 'o-', color = 'maroon', label = r'$^{13}$CH$_4$' )
 ax1.legend(loc='best')
 plt.savefig('rel_dev_from_prior'+exp_name)
 
-
-J_prior = dot(b_inv, ( x_opt - x_prior )**2) # prior
+J_prior = background(x_opt) # prior
+_, _, _, J_pri_foh, J_pri_fst, J_pri_fsl, J_pri_f12, J_pri_f13 = unpack(J_prior)
 J_prior_ch4 = (( ech4_prior - ech4_opt ) / ech4_error)**2
 J_prior_d13c = (( ed13c_prior - ed13c_opt ) / ed13c_error)**2
 
@@ -657,18 +668,16 @@ ax2.set_xlabel('Year')
 ax1.set_ylabel('Cost function')
 ax2.set_ylabel('Cost function')
 [range(styear,edyear),]
-ax1.plot( range(styear,edyear), J_prior[:nt], 'o-', color = 'blue', label = 'OH' )
-ax1.plot( range(styear,edyear), J_prior[nt+1:2*nt+1], 'o-', color = 'green', label = 'MCF' )
-ax1.plot( range(styear,edyear), J_prior[2*nt+2:3*nt+2], 'o-', color = 'red', label = r'$^{12}$CH$_4$' )
-ax1.plot( range(styear,edyear), J_prior[3*nt+3:4*nt+3], 'o-', color = 'maroon', label = r'$^{13}$CH$_4$' )
+ax1.plot( range(styear,edyear), J_pri_foh, 'o-', color = 'blue', label = 'OH' )
+ax1.plot( range(styear,edyear), J_pri_fst+J_pri_fsl, 'o-', color = 'green', label = 'MCF' )
+ax1.plot( range(styear,edyear), J_pri_f12, 'o-', color = 'red', label = r'$^{12}$CH$_4$' )
+ax1.plot( range(styear,edyear), J_pri_f13, 'o-', color = 'maroon', label = r'$^{13}$CH$_4$' )
 ax2.plot( range(styear,edyear), J_mcf_opt, 'o-', color = 'green', label = 'MCF' )
 ax2.plot( range(styear,edyear), J_c12_opt, 'o-', color = 'red', label = r'$^{12}$CH$_4$' )
 ax2.plot( range(styear,edyear), J_c13_opt, 'o-', color = 'maroon', label = r'$^{13}$CH$_4$' )
 ax1.legend(loc='best')
 ax2.legend(loc='best')
 plt.savefig('cost_functions_state'+exp_name)
-
-
 
 plt.figure()
 plt.title('Second part of cost function for '+r'CH$_4$ and $\delta^{13}$C')
