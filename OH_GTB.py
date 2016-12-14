@@ -29,6 +29,8 @@ def calculate_J(xp):
     
     J_pri = sum(background(x)) # prior
     J_tot = .5 * ( J_pri + J_obs )
+    print 'Cost observations  :',J_obs*red
+    print 'Cost background    :',J_pri*red
     print 'Cost function value:',J_tot*red
     return J_tot*red
 
@@ -71,7 +73,6 @@ def adjoint_model_mcf( dep, foh, mcf_save ):
         
         # Add adjoint pulses
         dmcfi  += pulse_mcf[i]
-        
         # Chemistry
         dfoh[i] = - l_mcf_oh * mcf_save[i] * dmcfi
         dmcfi   = dmcfi *  (1. - foh[i] * l_mcf_oh - l_mcf_strat - l_mcf_ocean)
@@ -175,9 +176,9 @@ def calc_mismatch(x):
     return C,array(C_obs - con_data)
 
 def forward_tl_mcf(x, foh, mcf_save):
-    mcf0, _, _, foh, fst, fsl, _, _ = unpack(x)
+    dmcf0, _, _, dfoh, dfst, dfsl, _, _ = unpack(x)
     
-    dmcfs = zeros(nt); dmcfi = mcf0
+    dmcfs = zeros(nt); dmcfi = dmcf0
     rapidc = rapid/conv_mcf
     
     for year in range(styear,edyear):
@@ -201,32 +202,32 @@ def forward_tl_mcf(x, foh, mcf_save):
     return dmcfs
     
 def forward_tl_c12(x, foh, c12_save):
-    _, c120, _, foh, _, _, fc12, _ = unpack(x)
+    _, dc120, _, dfoh, _, _, dfc12, _ = unpack(x)
     dem_12 = dfc12 * (em0_c12 / conv_ch4)
     
-    dc12s = []; dc12 = c120
+    dc12s = zeros(nt); dc12 = dc120
     for year in range(styear,edyear):
         i = year - styear
         dc12 += dem_12[i]
         dc12  = dc12 * ( 1 - l_ch4_other - l_ch4_oh * foh[i]) - \
                 dfoh[i] * c12_save[i] * l_ch4_oh
-        dc12s.append(dc12)
+        dc12s[i] = dc12
     
-    return array(dc12s)
+    return dc12s
     
 def forward_tl_c13(x, foh, c13_save):
-    _, _, c130, foh, _, _, _, fc13 = unpack(x)
+    _, _, dc130, dfoh, _, _, _, dfc13 = unpack(x)
     dem_c13 = dfc13 * (em0_c13 / conv_c13)
     
-    dc13s = []; dc13 = c130
+    dc13s = zeros(nt); dc13 = dc130
     for year in range(styear,edyear):
         i = year - styear
         dc13 += dem_c13[i]
         dc13  = dc13 * ( 1 - a_ch4_other * l_ch4_other - a_ch4_oh * l_ch4_oh * foh[i] ) - \
                 dfoh[i] * c13_save[i] * l_ch4_oh * a_ch4_oh
-        dc13s.append(dc13)
+        dc13s[i] = dc13
     
-    return array(dc13s)
+    return dc13s
 
 def forward_all(x):
     C_mcf,C_c12,C_c13 = forward_mcf(x),forward_c12(x),forward_c13(x)
@@ -315,15 +316,13 @@ def adj_obs_oper(dep):
     return dep
     
 def state_to_precon(x):
-    '''
-    Convert the state and derivative to the preconditioned space.
-    '''
+    ''' Convert the state and derivative to the preconditioned space. '''
+    #return x
     return dot( L_inv, (x - x_prior) ) 
 
 def precon_to_state(xp):
-    '''
-    Convert the preconditioned state to the original space.
-    '''
+    ''' Convert the preconditioned state to the original space. '''
+    #return xp
     return dot( L_precon, xp ) + x_prior
 
 def split_to_deltot(c12, c13, c12_e = [None], c13_e = [None], mass=False):
@@ -383,9 +382,7 @@ def deltot_to_split(ch4, delc, ch4_e = [None], delc_e = [None],mass=False):
     return c12, c13
 
 def unpack(x):
-    '''
-    Unpacks the state vector. Returns the respective components.
-    '''
+    ''' Unpacks the state vector. Returns the respective components. '''
     mcf0,c120,c130 = x[0],x[1],x[2]
     foh = x[3:nt+3]
     fstock,fslow = x[nt+3:2*nt+3],x[2*nt+3:3*nt+3]
@@ -405,7 +402,7 @@ conv_ch4 = xch4 / 10**9  * m / xmair # kg/ppb
 conv_c13 = xc13 / 10**9  * m / xmair # kg/ppb
 l_mcf_ocean = 1./83.0  # loss rate yr-1
 l_mcf_strat = 1./45.0
-oh = .9*1e6  # molecules/cm3
+oh = .7*1e6  # molecules/cm3
 temp = 272.0  # Kelvin        #
 l_mcf_oh = (1.64e-12*exp(-1520.0/temp))*oh  # in s-1
 l_ch4_oh = (2.45e-12*exp(-1775.0/temp))*oh  
@@ -430,7 +427,7 @@ em0_ch4 = array([550.0]*nt)*1e9
 d13c_obs,d13c_obs_e = read_d13C_obs(os.path.join('OBSERVATIONS','d13C_Schaefer.txt'))
 em0_d13c = array([-54.1]*nt)
 
-fec,femcf = 1.,1. # Reduction of the error
+fec,femcf = 1.5,1.5 # Reduction of the error
 mcf_obs_e *= femcf
 ch4_obs_e *= fec
 d13c_obs_e *= fec
@@ -461,7 +458,7 @@ b = zeros((nstate,nstate))
 error_oh = .05
 error_e_st = .02; error_e_sl = .02   # mcf emission errors
 error_e_c12 = .05; error_e_c13 = .05 # ch4 emission errors
-error_mcf0 = .5; error_c120 = .5; error_c130 = .5 # error in initial concentration
+error_mcf0 = .2; error_c120 = .2; error_c130 = .2 # error in initial concentration
 corlen_oh = 1. 
 corlen_em = 1.
 
@@ -470,7 +467,7 @@ b[1, 1] = (x_prior[1]*error_c120)**2
 b[2, 2] = (x_prior[2]*error_c130)**2
 for i in range(3, nt+3):
     b[i,i] = error_oh**2
-    for j in range(0,i):
+    for j in range(3,i):
         b[i,j] = exp(-(i-j)/corlen_oh)*(error_oh)**2
         b[j,i] = b[i,j]
 for i in range(nt+3, 2*nt+3):
@@ -589,8 +586,8 @@ plt.savefig('MCF_concentrations'+exp_name)
 # Plotting prior state vs optimized state
 
 mcf0_opt, c120_opt, c130_opt, foh_opt, fst_opt, fsl_opt, f12_opt, f13_opt = unpack(x_opt)  
-em0_opt = em0 + mcf_shift( fst_opt, fsl_opt )
-mcf_dev = em0_opt/em0 - 1.
+em0_opt = em0_mcf + mcf_shift( fst_opt, fsl_opt )
+mcf_dev = em0_opt/em0_mcf - 1.
 
 
 oh_prior, oh_opt = foh_prior*oh/1.e6, foh_opt*oh/1.e6
@@ -667,7 +664,6 @@ ax2.set_title('First part cost function')
 ax2.set_xlabel('Year')
 ax1.set_ylabel('Cost function')
 ax2.set_ylabel('Cost function')
-[range(styear,edyear),]
 ax1.plot( range(styear,edyear), J_pri_foh, 'o-', color = 'blue', label = 'OH' )
 ax1.plot( range(styear,edyear), J_pri_fst+J_pri_fsl, 'o-', color = 'green', label = 'MCF' )
 ax1.plot( range(styear,edyear), J_pri_f12, 'o-', color = 'red', label = r'$^{12}$CH$_4$' )
