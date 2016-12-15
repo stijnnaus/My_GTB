@@ -62,7 +62,7 @@ def calculate_dJdx(xp):
     return dJdxp*red
 
 def adjoint_model_mcf( dep, foh, mcf_save ):
-    pulse_mcf = adj_obs_oper( dep )
+    pulse_mcf = adj_oper( dep )
     admcf,adfst,adfsl,adfoh = zeros(nt),zeros(nt),zeros(nt),zeros(nt)
     adshift = zeros(nt)
     admcfi = 0.
@@ -70,9 +70,9 @@ def adjoint_model_mcf( dep, foh, mcf_save ):
     for iyear in range(edyear-1,styear-1,-1):
         i  = iyear-styear
         ie = iyear-1951
-        # Add adjoint pulse
-        admcfi  += pulse_mcf[i]
         for n in range(0,nstep):
+            # Add adjoint pulse
+            admcfi  += pulse_mcf[i][n]
             # Chemistry
             adfoh[i] -= l_mcf_ohf * mcf_save[i] * admcfi
             admcfi   = admcfi *  (1. - foh[i] * l_mcf_ohf - l_mcf_stratf - l_mcf_oceanf)
@@ -92,7 +92,7 @@ def adjoint_model_mcf( dep, foh, mcf_save ):
     return adj_mcf
     
 def adjoint_model_c12( dep, foh, c12_save ):
-    pulse_c12 = adj_obs_oper( dep )
+    pulse_c12 = adj_oper( dep )
     em0_12 = em0_c12 / conv_ch4
     em0f = em0_12 * dt
     
@@ -101,8 +101,8 @@ def adjoint_model_c12( dep, foh, c12_save ):
     
     for iyear in range(edyear-1, styear-1, -1):
         i = iyear-styear
-        dc12i += pulse_c12[i]
         for n in range(nstep):
+            dc12i += pulse_c12[i][n]
             # Chemistry
             dfoh[i] -= l_ch4_ohf * c12_save[i] * dc12i
             dc12i = dc12i * (1. - foh[i] * l_ch4_ohf - l_ch4_otherf)
@@ -113,7 +113,7 @@ def adjoint_model_c12( dep, foh, c12_save ):
     return adj_c12
     
 def adjoint_model_c13( dep, foh, c13_save ):
-    pulse_c13 = adj_obs_oper( dep )
+    pulse_c13 = adj_oper( dep )
     em0_13 = em0_c13 / conv_c13
     em0f = em0_13*dt
     
@@ -122,9 +122,8 @@ def adjoint_model_c13( dep, foh, c13_save ):
     
     for iyear in range(edyear-1, styear-1, -1):
         i = iyear - styear
-        dc13i += pulse_c13[i]
-        
         for n in range(nstep):
+            dc13i += pulse_c13[i][n]
             # Chemistry
             dfoh[i] -= a_ch4_oh * l_ch4_ohf * c13_save[i] * dc13i
             dc13i   = dc13i * (1 - foh[i] * l_ch4_ohf * a_ch4_oh - a_ch4_other * l_ch4_otherf)
@@ -135,7 +134,7 @@ def adjoint_model_c13( dep, foh, c13_save ):
     return adj_c13
 
 def cost_mcf(con):
-    mcf,ch4,d13c = obs_oper(con)
+    mcf,ch4,d13c = con
     dif = (mcf - mcf_obs)
     dep = dif / mcf_obs_e**2
     cost_list = dif*dep
@@ -143,7 +142,7 @@ def cost_mcf(con):
     return dep,cost,cost_list
     
 def cost_ch4(con):
-    mcf,ch4,d13c = obs_oper(con)
+    mcf,ch4,d13c = con
     dif = (ch4 - ch4_obs)
     dep = dif / ch4_obs_e**2
     cost_list = dif*dep
@@ -151,7 +150,7 @@ def cost_ch4(con):
     return dep,cost,cost_list
     
 def cost_d13c(con):
-    mcf,ch4,d13c = obs_oper(con)
+    mcf,ch4,d13c = con
     dif = (d13c - d13c_obs)
     dep = dif / d13c_obs_e**2
     cost_list = dif*dep
@@ -159,7 +158,7 @@ def cost_d13c(con):
     return dep,cost,cost_list
     
 def cost_c12(con):
-    mcf,c12,c13 = obs_oper(con)
+    mcf,c12,c13 = con
     dif = (c12 - c12_obs)
     dep = dif / c12_obs_e**2
     cost_list = dif*dep
@@ -167,21 +166,17 @@ def cost_c12(con):
     return dep,cost,cost_list
     
 def cost_c13(con):
-    mcf,c12,c13 = obs_oper(con)
+    mcf,c12,c13 = con
     dif = (c13 - c13_obs)
     dep = dif / c13_obs_e**2
     cost_list = dif*dep
     cost = sum(cost_list)
     return dep,cost,cost_list
 
-def calc_mismatch(x):
-    C = forward_all(x)
-    C_obs = obs_oper(C)
-    return C,array(C_obs - con_data)
-
 def forward_tl_mcf(x, foh, mcf_save):
     dmcf0, _, _, dfoh, dfst, dfsl, _, _ = unpack(x)
-    dmcfs = zeros(nt); dmcfi = dmcf0
+    dmcfs = zeros((nt,nstep))
+    dmcfi = dmcf0
     rapidc = rapid/conv_mcf
     for year in range(styear,edyear):
         i  = year - styear
@@ -198,45 +193,45 @@ def forward_tl_mcf(x, foh, mcf_save):
         if i >= 2: dshift += 0.75 * rapidc[ie-2] * dfsl[i-2]
         dshiftf = dshift*dt
         # Emission-chemistry interaction
+        dmcfis = zeros(nstep)
         for n in range(nstep):
             # Add emission
             dmcfi += dshiftf
             # Chemistry
             dmcfi = dmcfi * ( 1. - l_mcf_oceanf - l_mcf_stratf - l_mcf_ohf * foh[i] ) - \
                     dfoh[i] * mcf_save[i] * l_mcf_ohf
-        dmcfs[i] = dmcfi
-    return dmcfs
+            dmcfs[i][n] = dmcfi
+    return obs_oper(dmcfs)
     
 def forward_tl_c12(x, foh, c12_save):
     _, dc120, _, dfoh, _, _, dfc12, _ = unpack(x)
     dem_c12 = dfc12 * (em0_c12 / conv_ch4)
     demf = dem_c12*dt
-    
-    dc12s = zeros(nt); dc12 = dc120
+    dc12s = zeros((nt,nstep))
+    dc12 = dc120
     for year in range(styear,edyear):
         i = year - styear
         for n in range(nstep):
             dc12 += demf[i]
             dc12  = dc12 * ( 1 - l_ch4_otherf - l_ch4_ohf * foh[i]) - \
                     dfoh[i] * c12_save[i] * l_ch4_ohf
-        dc12s[i] = dc12
-    
-    return dc12s
+            dc12s[i][n] = dc12
+    return obs_oper(dc12s)
     
 def forward_tl_c13(x, foh, c13_save):
     _, _, dc130, dfoh, _, _, _, dfc13 = unpack(x)
     dem_c13 = dfc13 * (em0_c13 / conv_c13)
     demf = dem_c13*dt
-    dc13s = zeros(nt); dc13 = dc130
+    dc13s = zeros((nt,nstep))
+    dc13 = dc130
     for year in range(styear,edyear):
         i = year - styear
         for n in range(nstep):
             dc13 += demf[i]
             dc13  = dc13 * ( 1 - a_ch4_other * l_ch4_otherf - a_ch4_oh * l_ch4_ohf * foh[i] ) - \
                     dfoh[i] * c13_save[i] * l_ch4_ohf * a_ch4_oh
-        dc13s[i] = dc13
-    
-    return dc13s
+            dc13s[i][n] = dc13
+    return obs_oper(dc13s)
 
 def forward_all(x):
     C_mcf,C_c12,C_c13 = forward_mcf(x),forward_c12(x),forward_c13(x)
@@ -246,45 +241,45 @@ def forward_mcf(x):
     mcf0, _, _, foh, fst, fsl, _, _ = unpack(x)
     em = em0_mcf + mcf_shift(fst, fsl)
     em /= conv_mcf
-    mcfs = []; mcf = mcf0
+    mcfs = zeros((nt,nstep))
+    mcf = mcf0
     for year in range(styear,edyear):
         i = year - styear
         emf = em[i]*dt
         for n in range(nstep):
             mcf += emf
             mcf = mcf * ( 1 - l_mcf_ohf * foh[i] - l_mcf_oceanf - l_mcf_stratf )
-        mcfs.append(mcf)
-        
-    return array(mcfs)
+            mcfs[i][n] = mcf
+    return obs_oper(mcfs)
     
 def forward_c12(x):
     _, c120, _, foh, _, _, fc12, _ = unpack(x)
     em = fc12 * (em0_c12 / conv_ch4)
     
-    c12s = []; c12 = c120
+    c12s = zeros((nt,nstep))
+    c12 = c120
     for year in range(styear,edyear):
         i = year - styear
         emf = em[i]*dt
         for n in range(nstep):
             c12 += emf
             c12  = c12 * ( 1 - l_ch4_otherf - l_ch4_ohf * foh[i])
-        c12s.append(c12)
-    
-    return array(c12s)
+            c12s[i][n] = c12
+    return obs_oper(c12s)
    
 def forward_c13(x):
     _, _, c130, foh, _, _, _, fc13 = unpack(x)
     em = fc13 * (em0_c13 / conv_c13)
-    c13s = []; c13 = c130
+    c13s = zeros((nt,nstep))
+    c13 = c130
     for year in range(styear,edyear):
         i = year - styear
         emf = em[i]*dt
         for n in range(nstep):
             c13 += emf
             c13  = c13 * ( 1 - a_ch4_other * l_ch4_otherf - a_ch4_oh * l_ch4_ohf * foh[i] )
-        c13s.append(c13)
-    
-    return array(c13s)
+            c13s[i][n] = c13
+    return obs_oper(c13s)
 
 def mcf_shift(fst, fsl):
     '''
@@ -311,22 +306,38 @@ def mcf_shift(fst, fsl):
     return array(shifts)
     
 def obs_oper(con):
+    '''Converts from nsteps per year to yearly averages. '''
+    means = zeros(nt)
+    for i,c in enumerate(con):
+        means[i] = sum(c) / nstep
+    return means
+    
+def adj_oper(means):
+    '''Converts a yearly average to pulses per nstep.'''
+    pulses = []
+    for mean in means:
+        pulse = [mean for i in range(nstep)]
+        pulses.append(array(pulse))
+    pulses = array(pulses)/nstep
+    return pulses
+    
+#def obs_oper(con):
 #    mcf = con[0]
 #    c12 = con[1]
 #    c13 = con[2]
 #    ch4,d13c = split_to_deltot(c12,c13)
 #    obs = array([mcf,ch4,d13c])
 #    return obs
-    return con
+#    return con
 
-def adj_obs_oper(dep):
+#def adj_obs_oper(dep):
 #    mcf = dep[0]
 #    ch4 = dep[1]
 #    d13c = dep[2]
 #    c12,c13 = deltot_to_split(ch4,d13c)
 #    adj = array([mcf,c12,c13])
 #    return adj
-    return dep
+#    return dep
     
 def state_to_precon(x):
     ''' Convert the state and derivative to the preconditioned space. '''

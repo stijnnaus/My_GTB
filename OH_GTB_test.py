@@ -10,9 +10,6 @@ nxstate = len(x_prior)
 nstep = 5
 dt = 1./nstep
 
-    
-
-
 # MCF adjoint test
 if True:
     nnrun = 50
@@ -50,6 +47,8 @@ if True:
     MTy = np.concatenate(( array(MTy0[0]), MTy0[1],MTy0[2]))
     
     print 'c12 adjoint test result:',dot(Mx,y) / dot(x1,MTy)
+
+
 
 # 13CH4 adjoint test
 if True:
