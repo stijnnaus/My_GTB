@@ -7,19 +7,30 @@ Created on Wed Nov 09 13:20:25 2016
 
 # Adjoint test
 nxstate = len(x_prior)
+nstep = 5
+dt = 1./nstep
+
+    
+
+
 # MCF adjoint test
 if True:
-    xbase = 2.*np.random.rand( nxstate )
-    foh_tes = xbase[:nt]
-    mcf_tes = forward_mcf( xbase )
+    nnrun = 50
+    rats = zeros(nnrun)
+    for m in range(nnrun):
+        xbase = 2.*np.random.rand( nxstate )
+        foh_tes = xbase[:nt]
+        mcf_tes = forward_mcf( xbase )
+        
+        x1_0 = 5.*np.random.rand( nxstate )
+        Mx = forward_tl_mcf( x1_0, foh_tes, mcf_tes )
+        x1 = np.concatenate( ( array([x1_0[0]]), x1_0[3:nt+3], x1_0[nt+3:2*nt+3], x1_0[2*nt+3:3*nt+3] ) )
+        
+        y = 50-100*np.random.rand(nt)
+        MTy0 = adjoint_model_mcf( y, foh_tes, mcf_tes )
+        MTy = np.concatenate((array(MTy0[0]),MTy0[1],MTy0[2],MTy0[3]))
     
-    x1_0 = 5.*np.random.rand( nxstate )
-    Mx = forward_tl_mcf( x1_0, foh_tes, mcf_tes )
-    x1 = np.concatenate( ( array([x1_0[0]]), x1_0[3:nt+3], x1_0[nt+3:2*nt+3], x1_0[2*nt+3:3*nt+3] ) )
-    
-    y = 50-100*np.random.rand(nt)
-    MTy0 = adjoint_model_mcf( y, foh_tes, mcf_tes )
-    MTy = np.concatenate((array(MTy0[0]),MTy0[1],MTy0[2],MTy0[3]))
+        rats[m] = dot(Mx,y) / dot(x1,MTy)
     
     print 'mcf adjoint test result: ',dot(Mx,y) / dot(x1,MTy)
     #print MTy

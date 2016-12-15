@@ -17,7 +17,7 @@ from copy import *
 from numpy import linalg
 from scipy import optimize
 
-red = 1e-3
+red = 1e-2
 def calculate_J(xp):
     x = precon_to_state(xp)
     con = forward_all(x)
@@ -29,8 +29,8 @@ def calculate_J(xp):
     
     J_pri = sum(background(x)) # prior
     J_tot = .5 * ( J_pri + J_obs )
-    print 'Cost observations  :',J_obs*red
-    print 'Cost background    :',J_pri*red
+#    print 'Cost observations  :',J_obs*red
+#    print 'Cost background    :',J_pri*red
     print 'Cost function value:',J_tot*red
     return J_tot*red
 
@@ -63,38 +63,38 @@ def calculate_dJdx(xp):
 
 def adjoint_model_mcf( dep, foh, mcf_save ):
     pulse_mcf = adj_obs_oper( dep )
-    dmcf,dfst,dfsl,dfoh = zeros(nt),zeros(nt),zeros(nt),zeros(nt)
-    dmcfi = 0.
+    admcf,adfst,adfsl,adfoh = zeros(nt),zeros(nt),zeros(nt),zeros(nt)
+    adshift = zeros(nt)
+    admcfi = 0.
     rapidc = rapid / conv_mcf
-    
     for iyear in range(edyear-1,styear-1,-1):
         i  = iyear-styear
         ie = iyear-1951
-        
-        # Add adjoint pulses
-        dmcfi  += pulse_mcf[i]
-        # Chemistry
-        dfoh[i] = - l_mcf_oh * mcf_save[i] * dmcfi
-        dmcfi   = dmcfi *  (1. - foh[i] * l_mcf_oh - l_mcf_strat - l_mcf_ocean)
-        dmcf[i] = dmcfi
-        
+        # Add adjoint pulse
+        admcfi  += pulse_mcf[i]
+        for n in range(0,nstep):
+            # Chemistry
+            adfoh[i] -= l_mcf_ohf * mcf_save[i] * admcfi
+            admcfi   = admcfi *  (1. - foh[i] * l_mcf_ohf - l_mcf_stratf - l_mcf_oceanf)
+            # Emission shift
+            adshift[i] += admcfi*dt
         # Emissions stock
-        dfst[i] = - 0.75 * rapidc[ie] * dmcf[i]
-        if (iyear + 1) < edyear: dfst[i] -= 0.25 * rapidc[ie] * dmcf[i+1]
+        adfst[i] -= 0.75 * rapidc[ie] * adshift[i]
+        if (iyear + 1) < edyear: adfst[i] -= 0.25 * rapidc[ie] * adshift[i+1]
         for yearb in range(iyear+1 , iyear+11):
             i2  = yearb - styear
-            ie2 = yearb - 1951
-            if yearb < edyear: dfst[i] += 0.1 * rapidc[ie] * dmcf[i2]
+            if yearb < edyear: adfst[i] += 0.1 * rapidc[ie] * adshift[i2]
         # Emissions slow
-        dfsl[i] = - 0.75 * rapidc[ie] * dmcfi
-        if (iyear + 2) < edyear: dfsl[i] += 0.75 * rapidc[ie] * dmcf[i+2]
-            
-    adj_mcf = [array([dmcfi]),dfoh,dfst,dfsl]
+        adfsl[i] -= 0.75 * rapidc[ie] * adshift[i]
+        if (iyear + 2) < edyear: adfsl[i] += 0.75 * rapidc[ie] * adshift[i+2]
+        admcf[i] = admcfi
+    adj_mcf = [array([admcfi]),adfoh,adfst,adfsl]
     return adj_mcf
     
 def adjoint_model_c12( dep, foh, c12_save ):
     pulse_c12 = adj_obs_oper( dep )
     em0_12 = em0_c12 / conv_ch4
+    em0f = em0_12 * dt
     
     df12,dfoh = zeros(nt),zeros(nt)
     dc12i = 0.
@@ -102,11 +102,12 @@ def adjoint_model_c12( dep, foh, c12_save ):
     for iyear in range(edyear-1, styear-1, -1):
         i = iyear-styear
         dc12i += pulse_c12[i]
-        
-        dfoh[i] = - l_ch4_oh * c12_save[i] * dc12i
-        dc12i = dc12i * (1. - foh[i] * l_ch4_oh - l_ch4_other)
-        
-        df12[i] = em0_12[i] * dc12i
+        for n in range(nstep):
+            # Chemistry
+            dfoh[i] -= l_ch4_ohf * c12_save[i] * dc12i
+            dc12i = dc12i * (1. - foh[i] * l_ch4_ohf - l_ch4_otherf)
+            # Emissions
+            df12[i] += em0f[i] * dc12i
         
     adj_c12 = [array([dc12i]), dfoh, df12]
     return adj_c12
@@ -114,6 +115,7 @@ def adjoint_model_c12( dep, foh, c12_save ):
 def adjoint_model_c13( dep, foh, c13_save ):
     pulse_c13 = adj_obs_oper( dep )
     em0_13 = em0_c13 / conv_c13
+    em0f = em0_13*dt
     
     df13,dfoh = zeros(nt),zeros(nt)
     dc13i = 0.
@@ -122,10 +124,12 @@ def adjoint_model_c13( dep, foh, c13_save ):
         i = iyear - styear
         dc13i += pulse_c13[i]
         
-        dfoh[i] = - a_ch4_oh * l_ch4_oh * c13_save[i] * dc13i
-        dc13i   = dc13i * (1 - foh[i] * l_ch4_oh * a_ch4_oh - a_ch4_other * l_ch4_other)
-        
-        df13[i] = em0_13[i] * dc13i
+        for n in range(nstep):
+            # Chemistry
+            dfoh[i] -= a_ch4_oh * l_ch4_ohf * c13_save[i] * dc13i
+            dc13i   = dc13i * (1 - foh[i] * l_ch4_ohf * a_ch4_oh - a_ch4_other * l_ch4_otherf)
+            # Emissions
+            df13[i] += em0f[i] * dc13i
         
     adj_c13 = [array([dc13i]), dfoh, df13]
     return adj_c13
@@ -177,40 +181,44 @@ def calc_mismatch(x):
 
 def forward_tl_mcf(x, foh, mcf_save):
     dmcf0, _, _, dfoh, dfst, dfsl, _, _ = unpack(x)
-    
     dmcfs = zeros(nt); dmcfi = dmcf0
     rapidc = rapid/conv_mcf
-    
     for year in range(styear,edyear):
         i  = year - styear
         ie = year - 1951
-        # Emissions stock
-        dmcfi -= 0.75 * rapidc[ie] * dfst[i]
-        if i >= 1: dmcfi -= 0.25 * rapidc[ie-1] * dfst[i-1]
+        # Calculate emission shift from fstock ...
+        dshift = - 0.75 * rapidc[ie] * dfst[i]
+        if i >= 1: dshift -= 0.25 * rapidc[ie-1] * dfst[i-1]
         for yearb in range(year-1,year-11,-1):
             i2  = yearb - styear
             ie2 = yearb - 1951
-            if yearb >= styear: dmcfi += 0.1*dfst[i2]*rapidc[ie2]
-        # Emissions slow
-        dmcfi -= 0.75 * rapidc[ie] * dfsl[i]
-        if i >= 2: dmcfi += 0.75 * rapidc[ie-2] * dfsl[i-2]
-#        # Chemistry
-        dmcfi = dmcfi * ( 1. - l_mcf_ocean - l_mcf_strat - l_mcf_oh * foh[i] ) - \
-                dfoh[i] * mcf_save[i] * l_mcf_oh
+            if yearb >= styear: dshift += 0.1*dfst[i2]*rapidc[ie2]
+        # ... and from fslow
+        dshift -= 0.75 * rapidc[ie] * dfsl[i]
+        if i >= 2: dshift += 0.75 * rapidc[ie-2] * dfsl[i-2]
+        dshiftf = dshift*dt
+        # Emission-chemistry interaction
+        for n in range(nstep):
+            # Add emission
+            dmcfi += dshiftf
+            # Chemistry
+            dmcfi = dmcfi * ( 1. - l_mcf_oceanf - l_mcf_stratf - l_mcf_ohf * foh[i] ) - \
+                    dfoh[i] * mcf_save[i] * l_mcf_ohf
         dmcfs[i] = dmcfi
-        
     return dmcfs
     
 def forward_tl_c12(x, foh, c12_save):
     _, dc120, _, dfoh, _, _, dfc12, _ = unpack(x)
-    dem_12 = dfc12 * (em0_c12 / conv_ch4)
+    dem_c12 = dfc12 * (em0_c12 / conv_ch4)
+    demf = dem_c12*dt
     
     dc12s = zeros(nt); dc12 = dc120
     for year in range(styear,edyear):
         i = year - styear
-        dc12 += dem_12[i]
-        dc12  = dc12 * ( 1 - l_ch4_other - l_ch4_oh * foh[i]) - \
-                dfoh[i] * c12_save[i] * l_ch4_oh
+        for n in range(nstep):
+            dc12 += demf[i]
+            dc12  = dc12 * ( 1 - l_ch4_otherf - l_ch4_ohf * foh[i]) - \
+                    dfoh[i] * c12_save[i] * l_ch4_ohf
         dc12s[i] = dc12
     
     return dc12s
@@ -218,13 +226,14 @@ def forward_tl_c12(x, foh, c12_save):
 def forward_tl_c13(x, foh, c13_save):
     _, _, dc130, dfoh, _, _, _, dfc13 = unpack(x)
     dem_c13 = dfc13 * (em0_c13 / conv_c13)
-    
+    demf = dem_c13*dt
     dc13s = zeros(nt); dc13 = dc130
     for year in range(styear,edyear):
         i = year - styear
-        dc13 += dem_c13[i]
-        dc13  = dc13 * ( 1 - a_ch4_other * l_ch4_other - a_ch4_oh * l_ch4_oh * foh[i] ) - \
-                dfoh[i] * c13_save[i] * l_ch4_oh * a_ch4_oh
+        for n in range(nstep):
+            dc13 += demf[i]
+            dc13  = dc13 * ( 1 - a_ch4_other * l_ch4_otherf - a_ch4_oh * l_ch4_ohf * foh[i] ) - \
+                    dfoh[i] * c13_save[i] * l_ch4_ohf * a_ch4_oh
         dc13s[i] = dc13
     
     return dc13s
@@ -237,38 +246,42 @@ def forward_mcf(x):
     mcf0, _, _, foh, fst, fsl, _, _ = unpack(x)
     em = em0_mcf + mcf_shift(fst, fsl)
     em /= conv_mcf
-    
     mcfs = []; mcf = mcf0
     for year in range(styear,edyear):
         i = year - styear
-        mcf += em[i]
-        mcf = mcf * ( 1 - l_mcf_oh * foh[i] - l_mcf_ocean - l_mcf_strat )
+        emf = em[i]*dt
+        for n in range(nstep):
+            mcf += emf
+            mcf = mcf * ( 1 - l_mcf_ohf * foh[i] - l_mcf_oceanf - l_mcf_stratf )
         mcfs.append(mcf)
         
     return array(mcfs)
     
 def forward_c12(x):
     _, c120, _, foh, _, _, fc12, _ = unpack(x)
-    em_c12 = fc12 * (em0_c12 / conv_ch4)
+    em = fc12 * (em0_c12 / conv_ch4)
     
     c12s = []; c12 = c120
     for year in range(styear,edyear):
         i = year - styear
-        c12 += em_c12[i]
-        c12  = c12 * ( 1 - l_ch4_other - l_ch4_oh * foh[i])
+        emf = em[i]*dt
+        for n in range(nstep):
+            c12 += emf
+            c12  = c12 * ( 1 - l_ch4_otherf - l_ch4_ohf * foh[i])
         c12s.append(c12)
     
     return array(c12s)
    
 def forward_c13(x):
     _, _, c130, foh, _, _, _, fc13 = unpack(x)
-    em_c13 = fc13 * (em0_c13 / conv_c13)
-    
+    em = fc13 * (em0_c13 / conv_c13)
     c13s = []; c13 = c130
     for year in range(styear,edyear):
         i = year - styear
-        c13 += em_c13[i]
-        c13  = c13 * ( 1 - a_ch4_other * l_ch4_other - a_ch4_oh * l_ch4_oh * foh[i] )
+        emf = em[i]*dt
+        for n in range(nstep):
+            c13 += emf
+            c13  = c13 * ( 1 - a_ch4_other * l_ch4_otherf - a_ch4_oh * l_ch4_ohf * foh[i] )
         c13s.append(c13)
     
     return array(c13s)
@@ -391,7 +404,9 @@ def unpack(x):
     return mcf0, c120, c130, foh, fstock, fslow, fc12, fc13    
 
 # setup model variables, emissions, etc:
-exp_name = '_Loose_Prior'
+exp_name = '_Timeres400'
+nstep = 400
+dt = 1./nstep
 m = 5.e18
 xmair = 28.5
 xmcf = 133.5
@@ -402,7 +417,7 @@ conv_ch4 = xch4 / 10**9  * m / xmair # kg/ppb
 conv_c13 = xc13 / 10**9  * m / xmair # kg/ppb
 l_mcf_ocean = 1./83.0  # loss rate yr-1
 l_mcf_strat = 1./45.0
-oh = .7*1e6  # molecules/cm3
+oh = .9*1e6  # molecules/cm3
 temp = 272.0  # Kelvin        #
 l_mcf_oh = (1.64e-12*exp(-1520.0/temp))*oh  # in s-1
 l_ch4_oh = (2.45e-12*exp(-1775.0/temp))*oh  
@@ -415,6 +430,12 @@ l_ch4_other_abs = 109. # Tg yr-1
 t_ch4 = 9.1 # lifetime methane in yr
 l_ch4_other = l_ch4_other_abs / (t_ch4 * (l_ch4_oh_abs +l_ch4_other_abs)) # in yr-1
 a_ch4_other = 1 - 19./1000
+# Calculate loss at the increased timeres frequency
+l_ch4_otherf = l_ch4_other * dt
+l_ch4_ohf = l_ch4_oh * dt
+l_mcf_ohf = l_mcf_oh * dt
+l_mcf_oceanf = l_mcf_ocean * dt
+l_mcf_stratf = l_mcf_strat * dt
 styear,edyear = 1988,2009
 
 nt = edyear-styear
@@ -494,7 +515,7 @@ L_inv   = linalg.inv(L_precon)
 xp_prior = state_to_precon(x_prior)
 
 start = time.time()
-xp_opt = optimize.fmin_bfgs(calculate_J,xp_prior,calculate_dJdx, gtol=1e-4)
+xp_opt = optimize.fmin_bfgs(calculate_J,xp_prior,calculate_dJdx, gtol=1e-3)
 x_opt = precon_to_state(xp_opt)
 end   = time.time()
 print 'Optimization run time:',10**3*(end-start),'ms'
