@@ -20,17 +20,19 @@ from scipy import optimize
 red = 1e-2
 def calculate_J(xp):
     x = precon_to_state(xp)
-    con = forward_all(x)
-    dep_mcf,J_mcf,J_list_mcf = cost_mcf(con)
-    dep_c12,J_c12,J_list_c12 = cost_c12(con)
-    dep_c13,J_c13,J_list_c13 = cost_c13(con)
+    mcf,c12,c13 = forward_all(x)
+    ch4,d13c = obs_oper_del(c12,c13)
+    dep_mcf, J_mcf, J_list_mcf = cost_mcf(mcf)
+    dep_ch4, J_ch4, J_list_ch4 = cost_ch4(ch4)
+    dep_d13c, J_d13c,J_list_d13c = cost_d13c(d13c)
     
-    J_obs = J_mcf + J_c12 + J_c13 # mismatch with ob
+    J_obs = J_mcf + J_ch4 + J_d13c # mismatch with obs
+    print 'Cost mcf:', J_mcf*red/2., 'Cost ch4:', J_ch4*red/2., 'Cost d13c:', J_d13c*red/2.
     
-    J_pri = sum(background(x)) # prior
+    J_pri = sum(background(x)) # mismatch with prior
     J_tot = .5 * ( J_pri + J_obs )
-#    print 'Cost observations  :',J_obs*red
-#    print 'Cost background    :',J_pri*red
+    print 'Cost observations  :',J_obs*red
+    print 'Cost background    :',J_pri*red
     print 'Cost function value:',J_tot*red
     return J_tot*red
 
@@ -41,12 +43,14 @@ def calculate_dJdx(xp):
     x = precon_to_state(xp)
     _, _, _, foh, _, _, _, _ = unpack(x)
     mcf_save,c12_save,c13_save = forward_all(x)
+    ch4, d13c = obs_oper_del(c12_save, c13_save)
+    dep_mcf, J_mcf, J_list_mcf = cost_mcf(mcf_save)
+    dep_ch4, J_ch4, J_list_ch4 = cost_ch4(ch4)
+    dep_d13c, J_d13c, J_list_d13c = cost_d13c(d13c)
     
-    con = forward_all(x)
-    dep_mcf,J_mcf,J_list_mcf = cost_mcf(con)
-    dep_c12,J_c12,J_list_c12 = cost_c12(con)
-    dep_c13,J_c13,J_list_c13 = cost_c13(con)
-    dep = [dep_mcf,dep_c12,dep_c13]
+    dif_ch4, dif_d13c = dep_ch4*ch4_obs_e**2, dep_d13c*d13c_obs_e**2
+    dif_c12, dif_c13 = adj_oper_del(dif_ch4, dif_d13c)
+    dep_c12, dep_c13 = dif_c12/c12_obs_e**2, dif_c13/c13_obs_e**2
     
     dmcf0,dfoh_mcf,dfst,dfsl = adjoint_model_mcf( dep_mcf, foh, mcf_save )
     dc120,dfoh_c12,dfc12 = adjoint_model_c12( dep_c12, foh, c12_save )
@@ -62,7 +66,7 @@ def calculate_dJdx(xp):
     return dJdxp*red
 
 def adjoint_model_mcf( dep, foh, mcf_save ):
-    pulse_mcf = adj_oper( dep )
+    pulse_mcf = adj_oper_av( dep )
     admcf,adfst,adfsl,adfoh = zeros(nt),zeros(nt),zeros(nt),zeros(nt)
     adshift = zeros(nt)
     admcfi = 0.
@@ -92,7 +96,7 @@ def adjoint_model_mcf( dep, foh, mcf_save ):
     return adj_mcf
     
 def adjoint_model_c12( dep, foh, c12_save ):
-    pulse_c12 = adj_oper( dep )
+    pulse_c12 = adj_oper_av( dep )
     em0_12 = em0_c12 / conv_ch4
     em0f = em0_12 * dt
     
@@ -113,7 +117,7 @@ def adjoint_model_c12( dep, foh, c12_save ):
     return adj_c12
     
 def adjoint_model_c13( dep, foh, c13_save ):
-    pulse_c13 = adj_oper( dep )
+    pulse_c13 = adj_oper_av( dep )
     em0_13 = em0_c13 / conv_c13
     em0f = em0_13*dt
     
@@ -133,42 +137,23 @@ def adjoint_model_c13( dep, foh, c13_save ):
     adj_c13 = [array([dc13i]), dfoh, df13]
     return adj_c13
 
-def cost_mcf(con):
-    mcf,ch4,d13c = con
+def cost_mcf(mcf):
     dif = (mcf - mcf_obs)
     dep = dif / mcf_obs_e**2
     cost_list = dif*dep
     cost = sum(cost_list)
     return dep,cost,cost_list
     
-def cost_ch4(con):
-    mcf,ch4,d13c = con
+def cost_ch4(ch4):
     dif = (ch4 - ch4_obs)
     dep = dif / ch4_obs_e**2
     cost_list = dif*dep
     cost = sum(cost_list)
     return dep,cost,cost_list
     
-def cost_d13c(con):
-    mcf,ch4,d13c = con
+def cost_d13c(d13c):
     dif = (d13c - d13c_obs)
     dep = dif / d13c_obs_e**2
-    cost_list = dif*dep
-    cost = sum(cost_list)
-    return dep,cost,cost_list
-    
-def cost_c12(con):
-    mcf,c12,c13 = con
-    dif = (c12 - c12_obs)
-    dep = dif / c12_obs_e**2
-    cost_list = dif*dep
-    cost = sum(cost_list)
-    return dep,cost,cost_list
-    
-def cost_c13(con):
-    mcf,c12,c13 = con
-    dif = (c13 - c13_obs)
-    dep = dif / c13_obs_e**2
     cost_list = dif*dep
     cost = sum(cost_list)
     return dep,cost,cost_list
@@ -201,7 +186,7 @@ def forward_tl_mcf(x, foh, mcf_save):
             dmcfi = dmcfi * ( 1. - l_mcf_oceanf - l_mcf_stratf - l_mcf_ohf * foh[i] ) - \
                     dfoh[i] * mcf_save[i] * l_mcf_ohf
             dmcfs[i][n] = dmcfi
-    return obs_oper(dmcfs)
+    return obs_oper_av(dmcfs)
     
 def forward_tl_c12(x, foh, c12_save):
     _, dc120, _, dfoh, _, _, dfc12, _ = unpack(x)
@@ -216,7 +201,7 @@ def forward_tl_c12(x, foh, c12_save):
             dc12  = dc12 * ( 1 - l_ch4_otherf - l_ch4_ohf * foh[i]) - \
                     dfoh[i] * c12_save[i] * l_ch4_ohf
             dc12s[i][n] = dc12
-    return obs_oper(dc12s)
+    return obs_oper_av(dc12s)
     
 def forward_tl_c13(x, foh, c13_save):
     _, _, dc130, dfoh, _, _, _, dfc13 = unpack(x)
@@ -231,7 +216,7 @@ def forward_tl_c13(x, foh, c13_save):
             dc13  = dc13 * ( 1 - a_ch4_other * l_ch4_otherf - a_ch4_oh * l_ch4_ohf * foh[i] ) - \
                     dfoh[i] * c13_save[i] * l_ch4_ohf * a_ch4_oh
             dc13s[i][n] = dc13
-    return obs_oper(dc13s)
+    return obs_oper_av(dc13s)
 
 def forward_all(x):
     C_mcf,C_c12,C_c13 = forward_mcf(x),forward_c12(x),forward_c13(x)
@@ -250,7 +235,7 @@ def forward_mcf(x):
             mcf += emf
             mcf = mcf * ( 1 - l_mcf_ohf * foh[i] - l_mcf_oceanf - l_mcf_stratf )
             mcfs[i][n] = mcf
-    return obs_oper(mcfs)
+    return obs_oper_av(mcfs)
     
 def forward_c12(x):
     _, c120, _, foh, _, _, fc12, _ = unpack(x)
@@ -265,7 +250,7 @@ def forward_c12(x):
             c12 += emf
             c12  = c12 * ( 1 - l_ch4_otherf - l_ch4_ohf * foh[i])
             c12s[i][n] = c12
-    return obs_oper(c12s)
+    return obs_oper_av(c12s)
    
 def forward_c13(x):
     _, _, c130, foh, _, _, _, fc13 = unpack(x)
@@ -279,7 +264,7 @@ def forward_c13(x):
             c13 += emf
             c13  = c13 * ( 1 - a_ch4_other * l_ch4_otherf - a_ch4_oh * l_ch4_ohf * foh[i] )
             c13s[i][n] = c13
-    return obs_oper(c13s)
+    return obs_oper_av(c13s)
 
 def mcf_shift(fst, fsl):
     '''
@@ -305,14 +290,27 @@ def mcf_shift(fst, fsl):
     
     return array(shifts)
     
-def obs_oper(con):
+def obs_oper_del(c12, c13):
+    '''Converts 12CH4 and 13CH4 concentrations to CH4 concentration and d13C'''
+    ch4 = c12 + c13
+    d13c = 1000 * (( (c13/c12) / R_ST ) - 1)
+    return ch4, d13c
+    
+def adj_oper_del(ch4, d13c):
+    '''Converts CH4 concentration and d13C to 12CH4 and 13CH4 concentrations'''
+    q = array( R_ST * (d13c/1000.+1.) )
+    c12 = ch4 / (q+1)
+    c13 = q*c12
+    return c12, c13
+    
+def obs_oper_av(con):
     '''Converts from nsteps per year to yearly averages. '''
     means = zeros(nt)
     for i,c in enumerate(con):
         means[i] = sum(c) / nstep
     return means
     
-def adj_oper(means):
+def adj_oper_av(means):
     '''Converts a yearly average to pulses per nstep.'''
     pulses = []
     for mean in means:
@@ -320,24 +318,6 @@ def adj_oper(means):
         pulses.append(array(pulse))
     pulses = array(pulses)/nstep
     return pulses
-    
-#def obs_oper(con):
-#    mcf = con[0]
-#    c12 = con[1]
-#    c13 = con[2]
-#    ch4,d13c = split_to_deltot(c12,c13)
-#    obs = array([mcf,ch4,d13c])
-#    return obs
-#    return con
-
-#def adj_obs_oper(dep):
-#    mcf = dep[0]
-#    ch4 = dep[1]
-#    d13c = dep[2]
-#    c12,c13 = deltot_to_split(ch4,d13c)
-#    adj = array([mcf,c12,c13])
-#    return adj
-#    return dep
     
 def state_to_precon(x):
     ''' Convert the state and derivative to the preconditioned space. '''
@@ -505,8 +485,6 @@ for i in range(3, nt+3):
 for i in range(nt+3, 2*nt+3):
     b[i,i] = error_e_st**2
 for i in range(2*nt+3,3*nt+3):
-    b[i,i] = error_e_sl**2
-for i in range(3*nt+3,4*nt+3): 
     b[i,i] = error_e_c12**2
     for j in range(3*nt+3,i):
         b[i,j] = exp(-(i-j)/corlen_em)*(error_e_c12)**2
@@ -533,25 +511,21 @@ print 'Optimization run time:',10**3*(end-start),'ms'
 
 mcf_prior = forward_mcf(x_prior)
 c12_prior,c13_prior = forward_c12(x_prior),forward_c13(x_prior)
-
-ch4_prior,d13c_prior = split_to_deltot( c12_prior ,c13_prior )
-con_prior = forward_all(x_prior)
-
-J_ch4_prior  = ( (ch4_prior-ch4_obs)   / ch4_obs_e  )**2
-J_d13c_prior = ( (d13c_prior-d13c_obs) / d13c_obs_e )**2
-_,_,J_mcf_prior = cost_mcf( con_prior )
-_,_,J_c12_prior = cost_c12( con_prior )
-_,_,J_c13_prior = cost_c13( con_prior )
+ch4_prior,d13c_prior = obs_oper_del(c12_prior, c13_prior)
+_,_,J_ch4_prior  = cost_ch4(ch4_prior)
+_,_,J_d13c_prior = cost_d13c(d13c_prior)
+_,_,J_mcf_prior = cost_mcf(mcf_prior)
+J_c12_prior = ((c12_prior-c12_obs) / c12_obs_e)**2
+J_c13_prior = ((c12_prior-c12_obs) / c12_obs_e)**2
 
 mcf_opt = forward_mcf(x_opt)
 c12_opt, c13_opt = forward_c12(x_opt), forward_c13(x_opt)
-ch4_opt, d13c_opt = split_to_deltot(c12_opt, c13_opt)
-con_opt = forward_all(x_opt)
-J_ch4_opt  = ( (ch4_opt-ch4_obs)   / ch4_obs_e  )**2
-J_d13c_opt = ( (d13c_opt-d13c_obs) / d13c_obs_e )**2
-_,_,J_mcf_opt = cost_mcf( con_opt )
-_,_,J_c12_opt = cost_c12( con_opt )
-_,_,J_c13_opt = cost_c13( con_opt )
+ch4_opt, d13c_opt = obs_oper_del(c12_opt, c13_opt)
+_,_,J_ch4_opt  = cost_ch4(ch4_opt)
+_,_,J_d13c_opt = cost_d13c(d13c_opt)
+_,_,J_mcf_opt = cost_mcf(mcf_opt)
+J_c12_opt = ((c12_opt-c12_obs) / c12_obs_e)**2
+J_c13_opt = ((c13_opt-c13_obs) / c13_obs_e)**2
 
 figSize = (10,10)
 f, axarr = plt.subplots(2, sharex=True, figsize = figSize)
@@ -729,10 +703,17 @@ mcfff = mcf_obs
 
 
 
+delc = np.linspace(-5000.,5000.)/1000.
+ch4 = 1500.
+q = array( R_ST * (delc+1) )
+c12 = ch4 / (q+1)
+c13 = q*c12
 
-
-
-
+fig = plt.figure()
+ax1 = fig.add_subplot(111)
+ax2 = ax1.twinx()
+ax1.plot(delc,c12, 'ro')
+ax2.plot(delc,c13, 'bo')
 
 
 
