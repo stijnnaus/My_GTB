@@ -17,7 +17,7 @@ from copy import *
 from numpy import linalg
 from scipy import optimize
 
-red = 1e-3
+red = 1e-8
 def calculate_J(xp):
     x = precon_to_state(xp)
     mcf,c12,c13 = forward_all(x)
@@ -394,9 +394,14 @@ def unpack(x):
     
     return mcf0, c120, c130, foh, fstock, fslow, fc12, fc13    
 
-# setup model variables, emissions, etc:
+# Tuneable parameters
 exp_name = '_Timeres400'
 nstep = 400
+temp = 272.0  # Kelvin        
+oh = .85*1e6  # molecules/cm3
+styear,edyear = 1988,2009
+
+# Constants
 dt = 1./nstep
 m = 5.e18
 xmair = 28.5
@@ -408,8 +413,6 @@ conv_ch4 = xch4 / 10**9  * m / xmair # kg/ppb
 conv_c13 = xc13 / 10**9  * m / xmair # kg/ppb
 l_mcf_ocean = 1./83.0  # loss rate yr-1
 l_mcf_strat = 1./45.0
-oh = .9*1e6  # molecules/cm3
-temp = 272.0  # Kelvin        #
 l_mcf_oh = (1.64e-12*exp(-1520.0/temp))*oh  # in s-1
 l_ch4_oh = (2.45e-12*exp(-1775.0/temp))*oh  
 l_mcf_oh *= 3600.*24.0*365.0  # in yr-1
@@ -421,25 +424,22 @@ l_ch4_other_abs = 109. # Tg yr-1
 t_ch4 = 9.1 # lifetime methane in yr
 l_ch4_other = l_ch4_other_abs / (t_ch4 * (l_ch4_oh_abs +l_ch4_other_abs)) # in yr-1
 a_ch4_other = 1 - 19./1000
-# Calculate loss at the increased timeres frequency
-l_ch4_otherf = l_ch4_other * dt
+l_ch4_otherf = l_ch4_other * dt # loss at increased frequency
 l_ch4_ohf = l_ch4_oh * dt
 l_mcf_ohf = l_mcf_oh * dt
 l_mcf_oceanf = l_mcf_ocean * dt
 l_mcf_stratf = l_mcf_strat * dt
-styear,edyear = 1988,2009
-
 nt = edyear-styear
 
-# Reading in the data
+# Reading in the emission data and observations
 mcf_obs,mcf_obs_e = read_mcf_measurements()
 rapid,medium,slow,stock,em0_mcf,prod = read_mcf_emi(os.path.join('EMISSIONS','emissions.dat'))
 ch4_obs,ch4_obs_e = read_ch4_measurements()
-em0_ch4 = array([550.0]*nt)*1e9
+em0_ch4 = array([590.0]*nt)*1e9
 d13c_obs,d13c_obs_e = read_d13C_obs(os.path.join('OBSERVATIONS','d13C_Schaefer.txt'))
 em0_d13c = array([-54.1]*nt)
 
-fec,femcf = 1.5,1.5 # Reduction of the error
+fec,femcf = .05,.05 # Reduction of the error
 mcf_obs_e *= femcf
 ch4_obs_e *= fec
 d13c_obs_e *= fec
@@ -467,10 +467,10 @@ x_prior = concatenate((mcf0_prior, c120_prior, c130_prior, foh_prior, \
 nstate = len(x_prior)
 # Constructing the prior error matrix b
 b = zeros((nstate,nstate))
-error_oh = .05
-error_e_st = .02; error_e_sl = .02   # mcf emission errors
-error_e_c12 = .05; error_e_c13 = .05 # ch4 emission errors
-error_mcf0 = .2; error_c120 = .2; error_c130 = .2 # error in initial concentration
+error_oh = .5
+error_e_st = .5; error_e_sl = .5   # mcf emission errors
+error_e_c12 = .5; error_e_c13 = .5 # ch4 emission errors
+error_mcf0 = .5; error_c120 = .5; error_c130 = .5 # error in initial concentration
 corlen_oh = 1. 
 corlen_em = 1.
 
@@ -596,8 +596,6 @@ plt.savefig('MCF_concentrations'+exp_name)
 mcf0_opt, c120_opt, c130_opt, foh_opt, fst_opt, fsl_opt, f12_opt, f13_opt = unpack(x_opt)  
 em0_opt = em0_mcf + mcf_shift( fst_opt, fsl_opt )
 mcf_dev = em0_opt/em0_mcf - 1.
-
-
 oh_prior, oh_opt = foh_prior*oh/1.e6, foh_opt*oh/1.e6
 errors_oh = np.array([error_oh]*nt)*oh_prior
 emcf_prior, emcf_opt = em0_mcf + mcf_shift(fst_prior,fsl_prior), em0_mcf + mcf_shift(fst_opt,fst_opt)
@@ -698,24 +696,9 @@ plt.savefig('cost_function_ch4_d13c'+exp_name)
 
 
 
-mcfff = mcf_obs
-chhh4 = ch4_obs
+mcfff = mcf_obs # For use in data_plots
+chhh4 = ch4_obs # For use in data_plots
 
-
-
-
-
-delc = np.linspace(-5000.,5000.)/1000.
-ch4 = 1500.
-q = array( R_ST * (delc+1) )
-c12 = ch4 / (q+1)
-c13 = q*c12
-
-fig = plt.figure()
-ax1 = fig.add_subplot(111)
-ax2 = ax1.twinx()
-ax1.plot(delc,c12, 'ro')
-ax2.plot(delc,c13, 'bo')
 
 
 
