@@ -17,7 +17,7 @@ from copy import *
 from numpy import linalg
 from scipy import optimize
 
-red = 1e-2
+red = 1e-3
 def calculate_J(xp):
     x = precon_to_state(xp)
     mcf,c12,c13 = forward_all(x)
@@ -27,12 +27,13 @@ def calculate_J(xp):
     dep_d13c, J_d13c,J_list_d13c = cost_d13c(d13c)
     
     J_obs = J_mcf + J_ch4 + J_d13c # mismatch with obs
-    print 'Cost mcf:', J_mcf*red/2., 'Cost ch4:', J_ch4*red/2., 'Cost d13c:', J_d13c*red/2.
+    #print 'Cost mcf:', J_mcf*red/2., 'Cost ch4:', J_ch4*red/2., 'Cost d13c:', J_d13c*red/2.
     
     J_pri = sum(background(x)) # mismatch with prior
+    
     J_tot = .5 * ( J_pri + J_obs )
-    print 'Cost observations  :',J_obs*red
-    print 'Cost background    :',J_pri*red
+    #print 'Cost observations  :',J_obs*red
+    #print 'Cost background    :',J_pri*red
     print 'Cost function value:',J_tot*red
     return J_tot*red
 
@@ -240,7 +241,6 @@ def forward_mcf(x):
 def forward_c12(x):
     _, c120, _, foh, _, _, fc12, _ = unpack(x)
     em = fc12 * (em0_c12 / conv_ch4)
-    
     c12s = zeros((nt,nstep))
     c12 = c120
     for year in range(styear,edyear):
@@ -249,7 +249,7 @@ def forward_c12(x):
         for n in range(nstep):
             c12 += emf
             c12  = c12 * ( 1 - l_ch4_otherf - l_ch4_ohf * foh[i])
-            c12s[i][n] = c12
+            c12s[i] = c12
     return obs_oper_av(c12s)
    
 def forward_c13(x):
@@ -444,7 +444,7 @@ mcf_obs_e *= femcf
 ch4_obs_e *= fec
 d13c_obs_e *= fec
 
-c12_obs, c13_obs, c12_obs_e, c13_obs_e = deltot_to_split(ch4_obs,d13c_obs,ch4_obs_e,d13c_obs_e)
+c12_obs, c13_obs, c12_obs_e, c13_obs_e = deltot_to_split(ch4_obs,d13c_obs,ch4_obs_e,d13c_obs_e) 
 
 em0_c12, em0_c13 = deltot_to_split(em0_ch4, em0_d13c,mass=True)
 con_data = array([mcf_obs,ch4_obs,d13c_obs])
@@ -484,14 +484,16 @@ for i in range(3, nt+3):
         b[j,i] = b[i,j]
 for i in range(nt+3, 2*nt+3):
     b[i,i] = error_e_st**2
-for i in range(2*nt+3,3*nt+3):
+for i in range(2*nt+3, 3*nt+3):
+    b[i,i] = error_e_sl**2
+for i in range(3*nt+3,4*nt+3):
     b[i,i] = error_e_c12**2
     for j in range(3*nt+3,i):
         b[i,j] = exp(-(i-j)/corlen_em)*(error_e_c12)**2
         b[j,i] = b[i,j]
 for i in range(4*nt+3,5*nt+3): 
     b[i,i] = error_e_c13**2
-    for j in range(3*nt+3,i):
+    for j in range(4*nt+3,i):
         b[i,j] = exp(-(i-j)/corlen_em)*(error_e_c13)**2
         b[j,i] = b[i,j]
         
@@ -697,7 +699,7 @@ plt.savefig('cost_function_ch4_d13c'+exp_name)
 
 
 mcfff = mcf_obs
-
+chhh4 = ch4_obs
 
 
 
