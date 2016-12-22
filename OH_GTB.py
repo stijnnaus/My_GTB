@@ -428,7 +428,7 @@ conv_ch4 = xch4 / 10**9  * m / xmair # kg/ppb
 conv_c13 = xc13 / 10**9  * m / xmair # kg/ppb
 l_mcf_ocean = 1./83.0  # loss rate yr-1
 l_mcf_strat = 1./45.0
-oh = .9*1e6  # molecules/cm3
+oh = .85*1e6  # molecules/cm3
 temp = 272.0  # Kelvin        #
 l_mcf_oh = (1.64e-12*exp(-1520.0/temp))*oh  # in s-1
 l_ch4_oh = (2.45e-12*exp(-1775.0/temp))*oh  
@@ -455,7 +455,7 @@ nt = edyear-styear
 mcf_obs,mcf_obs_e = read_mcf_measurements()
 rapid,medium,slow,stock,em0_mcf,prod = read_mcf_emi(os.path.join('EMISSIONS','emissions.dat'))
 ch4_obs,ch4_obs_e = read_ch4_measurements()
-em0_ch4 = array([550.0]*nt)*1e9
+em0_ch4 = array([590.0]*nt)*1e9
 d13c_obs,d13c_obs_e = read_d13C_obs(os.path.join('OBSERVATIONS','d13C_Schaefer.txt'))
 em0_d13c = array([-54.1]*nt)
 
