@@ -25,12 +25,9 @@ def calculate_J(xp):
     dep_mcf, J_mcf, J_list_mcf = cost_mcf(mcf)
     dep_ch4, J_ch4, J_list_ch4 = cost_ch4(ch4)
     dep_d13c, J_d13c,J_list_d13c = cost_d13c(d13c)
-    
     J_obs = J_mcf + J_ch4 + J_d13c # mismatch with obs
     #print 'Cost mcf:', J_mcf*red/2., 'Cost ch4:', J_ch4*red/2., 'Cost d13c:', J_d13c*red/2.
-    
     J_pri = sum(background(x)) # mismatch with prior
-    
     J_tot = .5 * ( J_pri + J_obs )
     #print 'Cost observations  :',J_obs*red
     #print 'Cost background    :',J_pri*red
@@ -689,6 +686,38 @@ plt.plot( range(styear,edyear), J_prior_ch4 ,'o-', color = 'red', label = r'CH$_
 plt.plot( range(styear,edyear), J_prior_d13c,'o-', color = 'maroon', label = r'$\delta^{13}$C')
 plt.legend(loc = 'best')
 plt.savefig('cost_function_ch4_d13c'+exp_name)
+
+
+
+T_base = 272.
+l_mcf_oh_base = (1.64e-12*exp(-1520.0/T_base))*oh  # in s-1
+l_ch4_oh_base = (2.45e-12*exp(-1775.0/T_base))*oh  
+T_var = np.linspace(270,274)
+l_mcf_oh_var = (1.64e-12*exp(-1520.0/T_var))*oh  # in s-1
+l_ch4_oh_var = (2.45e-12*exp(-1775.0/T_var))*oh  
+
+plt.figure()
+plt.title('The effect of temperature on the MCF and CH4 loss rates to OH.\n\
+    Baseline is T=272')
+plt.plot(T_var, l_mcf_oh_var/l_mcf_oh_base, label = 'MCF')
+plt.plot(T_var, l_ch4_oh_var/l_ch4_oh_base, label = r'CH$_4$')
+plt.legend(loc='best')
+plt.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
