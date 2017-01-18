@@ -6,12 +6,12 @@ Created on Wed Nov 09 13:20:25 2016
 """
 
 # Adjoint test
-nxstate = len(x_prior)
+nxstate = len(x_pri)
 nstep = 5
 dt = 1./nstep
 
 # MCF adjoint test
-if True:
+if False:
     nnrun = 50
     rats = zeros(nnrun)
     for m in range(nnrun):

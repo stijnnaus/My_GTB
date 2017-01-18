@@ -8,6 +8,7 @@ Created on Fri Nov 04 11:36:16 2016
 import sys
 import os
 import time
+import numpy as np
 from numpy import array
 from pylab import *
 #from pyhdf.SD import *
@@ -25,6 +26,10 @@ def calculate_J(xp):
     dep_mcf, J_mcf, J_list_mcf = cost_mcf(mcf)
     dep_ch4, J_ch4, J_list_ch4 = cost_ch4(ch4)
     dep_d13c, J_d13c,J_list_d13c = cost_d13c(d13c)
+    _, _, cost_c12, cost_c13 = cost_c12_c13(c12,c13)
+    J_c12, J_c13 = sum(cost_c12), sum(cost_c13)
+    J_obs_ch4a = J_ch4 + J_d13c 
+    J_obs_ch4b = J_c12 + J_c13
     J_obs = J_mcf + J_ch4 + J_d13c # mismatch with obs
     #print 'Cost mcf:', J_mcf*red/2., 'Cost ch4:', J_ch4*red/2., 'Cost d13c:', J_d13c*red/2.
     J_pri = sum(background(x)) # mismatch with prior
@@ -46,9 +51,7 @@ def calculate_dJdx(xp):
     dep_ch4, J_ch4, J_list_ch4 = cost_ch4(ch4)
     dep_d13c, J_d13c, J_list_d13c = cost_d13c(d13c)
     
-    dif_ch4, dif_d13c = dep_ch4*ch4_obs_e**2, dep_d13c*d13c_obs_e**2
-    dif_c12, dif_c13 = adj_oper_del(dif_ch4, dif_d13c)
-    dep_c12, dep_c13 = dif_c12/c12_obs_e**2, dif_c13/c13_obs_e**2
+    dep_c12, dep_c13, _, _ = cost_c12_c13(c12_save, c13_save)
     
     dmcf0,dfoh_mcf,dfst,dfsl = adjoint_model_mcf( dep_mcf, foh, mcf_save )
     dc120,dfoh_c12,dfc12 = adjoint_model_c12( dep_c12, foh, c12_save )
@@ -62,6 +65,41 @@ def calculate_dJdx(xp):
     dJdxp = dot( L_adj, dJdx )
     print 'Cost function deriv:',max(dJdxp)*red
     return dJdxp*red
+    
+def cost_c12_c13(c12, c13):
+    '''
+    Returns departures and costs for c12 and c13, as calculated from deviations
+    between modeled and observed ch4/d13c.
+    '''
+    ch4_m, d13c_m = split_to_deltot(c12, c13) 
+    qm = R_ST * (d13c_m/1000. + 1)
+    qo = R_ST * (d13c_obs/1000. + 1)
+    # Pulse from CH4
+    dif_c12a = (ch4_m - ch4_obs) / (1 + qm)
+    sig_c12a = ch4_obs_e / (1 + qm)
+    dep_c12a = .5*dif_c12a / c12_e_ch4**2
+    dif_c13a = qm * dif_c12a
+    sig_c13a = qm * sig_c12a
+    dep_c13a = .5*dif_c13a / c13_e_ch4**2
+    cost_c12a = dep_c12a*dif_c12a
+    cost_c13a = dep_c13a*dif_c13a
+    # Pulse from d13C
+    dif_c12b = ch4_m * ( 1/(1+qm) - 1/(1+qo))
+    sig_c12b = (- R_ST * ch4_m / (1000 * qm**2 )) * d13c_obs_e
+    dep_c12b = dif_c12b / c12_e_d13c**2
+    dif_c13b = ch4_m * (qm/(1+qm) - qo/(1+qo))
+    sig_c13b = ((1000*R_ST*ch4_m) / (R_ST*d13c_m + 1000*R_ST + 1000)**2) * d13c_obs_e
+    dep_c13b = dif_c13b / c13_e_d13c**2
+    cost_c12b = dep_c12b*dif_c12b
+    cost_c13b = dep_c13b*dif_c13b
+    
+    dep_c12 = dep_c12a + dep_c12b
+    dep_c13 = dep_c13a + dep_c13b
+    cost_c12 = cost_c12a + cost_c12b
+    cost_c13 = cost_c13a + cost_c13b
+    print 'Cost a:',sum(cost_c12a+cost_c13a),'and cost b',sum(cost_c12b+cost_c13b)
+    return dep_c12, dep_c13, cost_c12, cost_c13
+
 
 def adjoint_model_mcf( dep, foh, mcf_save ):
     pulse_mcf = adj_oper_av( dep )
@@ -441,7 +479,15 @@ mcf_obs_e *= femcf
 ch4_obs_e *= fec
 d13c_obs_e *= fec
 
-c12_obs, c13_obs, c12_obs_e, c13_obs_e = deltot_to_split(ch4_obs,d13c_obs,ch4_obs_e,d13c_obs_e) 
+c12_obs, c13_obs, kk,kk2 = deltot_to_split(ch4_obs,d13c_obs,ch4_obs_e,d13c_obs_e) 
+# Calculating the observational c12,c13 error from ch4,d13c
+qo = R_ST * (d13c_obs/1000. + 1)
+c12_e_ch4 = abs(ch4_obs_e / (1 + qo))
+c13_e_ch4 = abs(qo * c12_e_ch4)
+c12_e_d13c = abs((- R_ST * ch4_obs / (1000 * qo**2 )) * d13c_obs_e)
+c13_e_d13c = abs(((1000*R_ST*ch4_obs) / (R_ST*d13c_obs + 1000*R_ST + 1000)**2) * d13c_obs_e)
+c12_obs_e = np.sqrt(c12_e_ch4**2 + c12_e_d13c**2)
+c13_obs_e = np.sqrt(c13_e_ch4**2 + c13_e_d13c**2)
 
 em0_c12, em0_c13 = deltot_to_split(em0_ch4, em0_d13c,mass=True)
 con_data = array([mcf_obs,ch4_obs,d13c_obs])
