@@ -342,11 +342,11 @@ def unpack(x):
     return mcf0, c120, c130, foh, fstock, fslow, fc12, fc13    
 
 # Tuneable parameters
-exp_name = '_no_ch4'
+exp_name = '_extend_noaa_noch4'
 nstep = 400
 temp = 272.0  # Kelvin        
 oh = .9*1e6  # molecules/cm3
-styear,edyear = 1988,2009
+styear,edyear = 1992,2015
 red = 1e-2
 
 # Constants
@@ -380,20 +380,29 @@ l_mcf_stratf = l_mcf_strat * dt
 nt = edyear-styear
 
 # Reading in the emission data and observations
-mcf_obs,mcf_obs_e = read_mcf_measurements()
+mcf_obs, mcf_obs_e = read_mcf_measurements()
+mcf_obs_e = mcf_obs_e[5:]
+yrs_mcf, mcf_obs = read_glob_mean(os.path.join('OBSERVATIONS', 'mcf_noaa_glob.txt'), styear, edyear)
+for yr in range(2008,edyear):
+    i = yr - 2008
+    mcf_obs_e = np.append(mcf_obs_e,mcf_obs_e[-1]*.9**i)
 rapid,medium,slow,stock,em0_mcf,prod = read_mcf_emi(os.path.join('EMISSIONS','emissions.dat'))
-ch4_obs,ch4_obs_e = read_ch4_measurements()
+rapid,medium,slow,stock,em0_mcf,prod = extend_mcf_emi(rapid,medium,slow,stock,em0_mcf,edyear)
+#ch4_obs,ch4_obs_e = read_ch4_measurements()
+yrs_ch4, ch4_obs = read_glob_mean(os.path.join('OBSERVATIONS', 'ch4_noaa_glob.txt'), styear, edyear)
+ch4_obs_e = array([3.0]*nt)
 em0_ch4 = array([590.0]*nt)*1e9
 d13c_obs,d13c_obs_e = read_d13C_obs(os.path.join('OBSERVATIONS','d13C_Schaefer.txt'))
+d13c_obs, d13c_obs_e = d13c_obs[4:], d13c_obs_e[4:]
 em0_d13c = array([-53.]*nt)
 r13_obs, r13_obs_e = d13c_to_r13(d13c_obs, d13c_obs_e)
 r13e0 = d13c_to_r13(em0_d13c)
 
 fec,femcf = 1.,1. # Reduction of the error
 mcf_obs_e *= femcf
-ch4_obs_e *= fec*300.
-d13c_obs_e *= fec*300.
-r13_obs_e *= fec*300.
+ch4_obs_e *= fec*300
+d13c_obs_e *= fec*300
+r13_obs_e *= fec*300
 
 # The prior
 mcf0_pri = array([117.])
@@ -599,6 +608,14 @@ plt.savefig('cost_functions_state'+exp_name)
 
 
 
+ch4_obs_growth = array([ch4_obs[i+1]-ch4_obs[i] for i in range(nt-1)])
+ch4_opt_growth = array([ch4_opt[i+1]-ch4_opt[i] for i in range(nt-1)])
+
+fig = plt.figure()
+ax1 = fig.add_subplot(111)
+ax2 = ax1.twinx()
+ax1.plot(np.arange(styear,edyear-1)+.5,ch4_obs_growth/ch4_opt_growth, 'go-', label = 'dCH4 observat')
+#ax1.plot(np.arange(styear,edyear-1)+.5,ch4_opt_growth, 'bo-', label = 'dCH4 optimized')
 
 
 
