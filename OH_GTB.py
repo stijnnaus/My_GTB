@@ -342,7 +342,7 @@ def unpack(x):
     return mcf0, c120, c130, foh, fstock, fslow, fc12, fc13    
 
 # Tuneable parameters
-exp_name = '_Timeres400'
+exp_name = '_no_ch4'
 nstep = 400
 temp = 272.0  # Kelvin        
 oh = .9*1e6  # molecules/cm3
@@ -391,9 +391,9 @@ r13e0 = d13c_to_r13(em0_d13c)
 
 fec,femcf = 1.,1. # Reduction of the error
 mcf_obs_e *= femcf
-ch4_obs_e *= fec
-d13c_obs_e *= fec
-r13_obs_e *= fec
+ch4_obs_e *= fec*300.
+d13c_obs_e *= fec*300.
+r13_obs_e *= fec*300.
 
 # The prior
 mcf0_pri = array([117.])
@@ -411,9 +411,9 @@ x_pri = np.concatenate((mcf0_pri, ch40_pri, r130_pri, foh_pri, \
 nstate = len(x_pri)
 # Constructing the prior error matrix b
 b = np.zeros((nstate,nstate))
-foh_e = .05 # error in initial oh fields
+foh_e = .02 # error in initial oh fields
 fst_e = .03; fsl_e = .03   # mcf emission errors
-fch4_e = .3; ed13c_e = .4 # ch4 & d13c emission errors
+fch4_e = .0003; ed13c_e = .0008 # ch4 & d13c emission errors
 _, r13e_e = d13c_to_r13(em0_d13c[0], ed13c_e) # resulting error in r13e
 mcfi_e = 5.; ch4i_e = 5.; d13ci_e = 3. # error in initial values
 _, r13i_e = d13c_to_r13(d13c_obs[0], d13ci_e) # resulting error in r13i
@@ -522,42 +522,45 @@ errors_e_mcf = array([error_e_mcf]*nt)*emcf_pri
 ech4_pri, ech4_opt = fch4_pri*em0_ch4, fch4_opt*em0_ch4
 ed13c_pri, ed13c_opt = r13_to_d13c(r13e_pri), r13_to_d13c(r13e_opt)
 
-fig = plt.figure(figsize = figSize)
-ax1 = fig.add_subplot(111)
+fig = plt.figure(figsize = (10,40))
+ax1 = fig.add_subplot(411)
 ax1.set_title('Prior and optimized global mean OH concentrations')
-ax1.set_xlabel('Year')
-ax1.set_ylabel(r'OH concentration ($10^6$ molec cm$^{-3}$)')
+ax1.set_ylabel('OH concentration \n'+r'($10^6$ molec cm$^{-3}$)')
 ax1.plot( range(styear,edyear), oh_pri, 'o-', color = 'red',   label = 'Prior'     )
 ax1.plot( range(styear,edyear), oh_opt  , 'o-', color = 'green', label = 'Optimized' )
 ax1.legend(loc='best')
-plt.savefig('OH_field_pri_opt'+exp_name)
-
-fig = plt.figure(figsize = figSize)
-ax1 = fig.add_subplot(111)
-ax1.set_title('Prior and optimized global mean MCF emissions')
-ax1.set_xlabel('Year')
-ax1.set_ylabel('MCF emissions (Gg/yr)')
-ax1.plot( range(styear,edyear), emcf_pri/1.e6, 'o-', color = 'red',   label = 'Prior'     )
-ax1.plot( range(styear,edyear), emcf_opt/1.e6  , 'o-', color = 'green', label = 'Optimized' )
-ax1.legend(loc='best')
-plt.savefig('emi_MCF_prior_opt'+exp_name)
-
-fig = plt.figure(figsize = figSize)
-ax1 = fig.add_subplot(211)
-ax1.set_title(r'Prior and optimized global mean CH$_4$ emissions')
-ax1.set_xlabel('Year')
-ax1.set_ylabel('CH$_4$ emissions (Tg/yr)')
-ax1.plot( range(styear,edyear), ech4_pri/1.e9, 'o-', color = 'red',   label = 'Prior'     )
-ax1.plot( range(styear,edyear), ech4_opt/1.e9  , 'o-', color = 'green', label = 'Optimized' )
-ax1.legend(loc='best')
-ax2 = fig.add_subplot(212)
-ax2.set_title(r'Prior and optimized $\delta^{13}$C global mean CH$_4$ emissions')
-ax2.set_xlabel('Year')
-ax2.set_ylabel('$\delta^{13}$C (permil)')
-ax2.plot( range(styear,edyear), ed13c_pri, 'o-', color = 'red',   label = 'Prior'     )
-ax2.plot( range(styear,edyear), ed13c_opt  , 'o-', color = 'green', label = 'Optimized' )
+ax2 = fig.add_subplot(412)
+ax2.set_title('Prior and optimized global mean MCF emissions')
+ax2.set_ylabel('MCF emissions (Gg/yr)')
+ax2.plot( range(styear,edyear), emcf_pri/1.e6, 'o-', color = 'red',   label = 'Prior'     )
+ax2.plot( range(styear,edyear), emcf_opt/1.e6  , 'o-', color = 'green', label = 'Optimized' )
 ax2.legend(loc='best')
-plt.savefig('emi_CH4_d13C_prior_opt'+exp_name)
+ax3 = fig.add_subplot(413)
+ax3.set_title('Prior and optimized '+r'global mean CH$_4$ emissions')
+ax3.set_ylabel('CH$_4$ emissions (Tg/yr)')
+ax3.plot( range(styear,edyear), ech4_pri/1.e9, 'o-', color = 'red',   label = 'Prior'     )
+ax3.plot( range(styear,edyear), ech4_opt/1.e9  , 'o-', color = 'green', label = 'Optimized' )
+ax3.legend(loc='best')
+ax4 = fig.add_subplot(414)
+ax4.set_title(r'Prior and optimized $\delta^{13}$C global mean CH$_4$ emissions')
+ax4.set_xlabel('Year')
+ax4.set_ylabel('$\delta^{13}$C (permil)')
+ax4.plot( range(styear,edyear), ed13c_pri, 'o-', color = 'red',   label = 'Prior'     )
+ax4.plot( range(styear,edyear), ed13c_opt  , 'o-', color = 'green', label = 'Optimized' )
+ax4.legend(loc='best')
+plt.savefig('full_state_pri_opt'+exp_name)
+
+fig = plt.figure(figsize = (10,30))
+ax1 = fig.add_subplot(311)
+ax2 = fig.add_subplot(312)
+ax3 = fig.add_subplot(313)
+ax1.set_ylabel('Optimized MCF emi shift (Gg/yr)')
+ax2.set_ylabel('fslow deviation (%)')
+ax3.set_ylabel('fstock deviation (%)')
+ax3.set_xlabel('Year')
+ax1.plot( range(styear,edyear), mcf_shift(fst_opt, fsl_opt)/1e6, 'o-', color = 'red',   label = 'Prior' )
+ax2.plot( range(styear,edyear), 100*(fsl_opt-fsl_pri)  , 'o-', color = 'green', label = 'Optimized' )
+ax3.plot( range(styear,edyear), 100*(fst_opt-fst_pri), 'o-', color = 'blue')
 
 rel_dev = (x_opt - x_pri)
 fig = plt.figure(figsize = figSize)
@@ -568,7 +571,6 @@ ax1.set_ylabel('Relative deviation (%)')
 ax1.plot( range(styear,edyear), 100.*(foh_opt - foh_pri), 'o-', color = 'blue', label = 'OH')
 ax1.plot( range(styear,edyear), 100.*mcf_dev, 'o-', color = 'green', label = 'MCF' )
 ax1.plot( range(styear,edyear), 100.*(fch4_opt - fch4_pri), 'o-', color = 'red', label = r'CH$_4$' )
-ax1.plot( range(styear,edyear), 100.*(r13e_opt-r13e_pri)/((r13e_pri+r13e_opt)/2), 'o-', color = 'maroon', label = r'$\delta^{13}$C' )
 ax1.legend(loc='best')
 plt.savefig('rel_dev_from_prior'+exp_name)
 
