@@ -19,6 +19,7 @@ from copy import *
 from numpy import linalg
 from scipy import optimize
 
+#comment
 def calculate_J(xp):
     x = precon_to_state(xp)
     mcf = forward_mcf(x)
