@@ -381,13 +381,13 @@ def write_settings(filename,header,b,clen_oh,clen_em,\
     f.close()
 
 # Tuneable parameters
-exp_name = 'extend_noaa_normal'
+exp_name = 'extend_noaa_mcf03'
 header_p1 = '#\n'
 nstep = 400
 temp = 272.0  # Kelvin        
 oh = .9*1e6  # molecules/cm3
 styear,edyear = 1992,2015
-red = 1e-2
+red = 1e-3
 
 # Constants
 dt = 1./nstep
@@ -429,7 +429,7 @@ for yr in range(2008,edyear):
 rapid,medium,slow,stock,em0_mcf,prod = read_mcf_emi(os.path.join('EMISSIONS','emissions.dat'))
 rapid,medium,slow,stock,em0_mcf,prod = extend_mcf_emi(rapid,medium,slow,stock,em0_mcf,edyear)
 #ch4_obs,ch4_obs_e = read_ch4_measurements()
-yrs_ch4, ch4_obs,ch4_obs_e = read_glob_mean(os.path.join('OBSERVATIONS', 'ch4_noaa_glob-wk.txt'), styear, edyear,errors=True)
+yrs_ch4, ch4_obs = read_glob_mean(os.path.join('OBSERVATIONS', 'ch4_noaa_glob.txt'), styear, edyear)
 ch4_obs_e = array([3.0]*nt)
 em0_ch4 = array([590.0]*nt)*1e9
 d13c_obs,d13c_obs_e = read_d13C_obs(os.path.join('OBSERVATIONS','d13C_Schaefer.txt'))
@@ -462,12 +462,12 @@ nstate = len(x_pri)
 b = np.zeros((nstate,nstate))
 foh_e = .02 # error in initial oh fields
 fst_e = .03; fsl_e = .03   # mcf emission errors
-fch4_e = .3; ed13c_e = .8 # ch4 & d13c emission errors
+fch4_e = .15; ed13c_e = .8 # ch4 & d13c emission errors
 _, r13e_e = d13c_to_r13(em0_d13c[0], ed13c_e) # resulting error in r13e
 mcfi_e = 5.; ch4i_e = 5.; d13ci_e = 3. # error in initial values
 _, r13i_e = d13c_to_r13(d13c_obs[0], d13ci_e) # resulting error in r13i
 corlen_oh = 1. 
-corlen_em = 1.
+corlen_em = 10.
 
 b[0,0] = (x_pri[0]*mcfi_e)**2
 b[1, 1] = (x_pri[1]*ch4i_e)**2
