@@ -4,6 +4,11 @@ Created on Wed Nov 09 13:20:25 2016
 
 @author: naus010
 """
+import numpy as np
+from numpy import array
+
+run_adj = True
+run_grd = False
 
 # Adjoint test
 nxstate = len(x_pri)
@@ -11,35 +16,37 @@ nstep = 5
 dt = 1./nstep
 
 # MCF adjoint test
-if True:
+if run_adj:
+    print 'Running the adjoint test for MCF ...'
     nnrun = 50
     rats = zeros(nnrun)
     for m in range(nnrun):
         xbase = 2.*np.random.rand( nxstate )
-        foh_tes = xbase[:nt]
-        mcf_tes = forward_mcf( xbase )
+        _,_,_,foh_tes,_,_,_,_,_ = unpack(xbase)
+        mcf_tes = forward_mcf(xbase)
         
-        x1_0 = 5.*np.random.rand( nxstate )
-        Mx = forward_tl_mcf( x1_0, foh_tes, mcf_tes )
-        x1 = np.concatenate( ( array([x1_0[0]]), x1_0[3:nt+3], x1_0[nt+3:2*nt+3], x1_0[2*nt+3:3*nt+3] ) )
+        x1_0 = 5.*np.random.rand(nxstate)
+        mcfi0,_,_,foh0,fst0,fsl0,fme0,_,_ = unpack(x1_0)
+        Mx = forward_tl_mcf(x1_0, foh_tes, mcf_tes)
+        x1 = np.concatenate((array([mcfi0]),foh0,fst0,fsl0,fme0))
         
         y = 50-100*np.random.rand(nt)
-        MTy0 = adjoint_model_mcf( y, foh_tes, mcf_tes )
-        MTy = np.concatenate((array(MTy0[0]),MTy0[1],MTy0[2],MTy0[3]))
+        MTy0 = adjoint_model_mcf(y, foh_tes, mcf_tes)
+        MTy = np.concatenate((MTy0[0],MTy0[1],MTy0[2],MTy0[3],MTy0[4]))
     
-        rats[m] = dot(Mx,y) / dot(x1,MTy)
+        rats[m] = np.dot(Mx,y) / np.dot(x1,MTy)
     
-    print 'mcf adjoint test result: ',dot(Mx,y) / dot(x1,MTy)
+    print 'mcf adjoint test result: ',np.dot(Mx,y) / np.dot(x1,MTy)
     #print MTy
 
 # CH4 adjoint test
-if True:
+if run_adj:
     print 'Running the adjoint test for CH4 ...'
     # Preparation
     x_base = 50.*np.random.rand( nxstate )
     ch4sv, r13sv, c13sv = forward_ch4(x_base)
-    _, ch4i_sv, r13i_sv, fohsv, _, _, fch4sv, r13e_sv = unpack(x_base)
-    ## Full test
+    _, ch4i_sv, r13i_sv, fohsv, _,_,_, fch4sv, r13e_sv = unpack(x_base)
+    # Full test
     xx = 50.*np.random.rand( nxstate )
     Mx_ch4, Mx_r13, _ = forward_tl_ch4(xx, ch4i_sv, r13i_sv, fohsv, fch4sv, r13e_sv,
                                        ch4sv, c13sv)
@@ -50,7 +57,7 @@ if True:
                                                    ch4sv, c13sv)
     Mx = np.concatenate((Mx_ch4, Mx_r13))
     yy = np.concatenate((yy_ch4, yy_r13))
-    xx = np.concatenate((xx[1:nt+3],xx[3*nt+3:]))
+    xx = np.concatenate((xx[1:nt+3],xx[4*nt+3:]))
     MTy = np.concatenate((dch4i, dr13i, dfoh, dfch4, dr13e))
     res_ful = np.dot(Mx,yy) / np.dot(xx,MTy)
     
@@ -74,7 +81,7 @@ def grad_test(x0,pert = 10**(-5)):
         predict = pert*deriv[i]
         J_post = calculate_J(x0p_pert)
         reduct = (J_post - J_prior)
-        if i < nt: dfohh.append( predict / reduct )
+        if i < nt+3 and i > 3: dfohh.append( predict / reduct )
         if predict == reduct == 0:
             val = 0
         else:
@@ -87,10 +94,9 @@ def grad_test(x0,pert = 10**(-5)):
         values.append(val)
     return array( values )*100,deriv,dfohh
     
-run_grad_test = True
-if run_grad_test:
+if run_grd:
     # Gradient test 
-    print 'Running grad test...'  
+    print 'Running gradient test...'  
     
     #x0_test = array([3.*np.random.random() for i in range(len(x_prior))])
     x0_test = x_opt + .1*np.random.rand(nstate)
@@ -102,13 +108,14 @@ if run_grad_test:
     print 'Grad test mean error (%):' , round(val.mean(),6) , 'and the std of the error:' , round(val.std(),6)
     
     print 'dfoh',val[3:nt+3].mean()
-    print 'mcf ini',val[0]
-    print 'dfslow',val[2*nt+3:3*nt+3].mean()
-    print 'dfstock',val[nt+3:2*nt+3].mean()
-    print '12ch4 ini',val[1]
-    print 'dfc12',val[3*nt+2:4*nt+2].mean()
-    print '13ch4 ini',val[2]
-    print 'dfc13',val[4*nt+3:5*nt+3].mean()
+    print 'dmcfi',val[0]
+    print 'dfsl',val[2*nt+3:3*nt+3].mean()
+    print 'dfst',val[nt+3:2*nt+3].mean()
+    print 'dfme',val[3*nt+3:4*nt+3].mean()
+    print 'dch4i',val[1]
+    print 'dfch4',val[4*nt+2:5*nt+2].mean()
+    print 'dr13i',val[2]
+    print 'dr13e',val[5*nt+3:6*nt+3].mean()
     
 
 

@@ -36,7 +36,7 @@ def calculate_J(xp):
     
 def calculate_dJdx(xp):
     x = precon_to_state(xp)
-    _, ch4i, r13i, foh, _, _, fch4, r13e = unpack(x)
+    _, ch4i, r13i, foh, _, _, _, fch4, r13e = unpack(x)
     mcf_sv = forward_mcf(x)
     ch4sv, r13sv, c13sv = forward_ch4(x)
     
@@ -44,14 +44,14 @@ def calculate_dJdx(xp):
     dep_ch4, _, _ = cost_ch4(ch4sv)
     dep_r13, _, _ = cost_r13(r13sv)
     
-    dmcf0, dfoh_mcf, dfst, dfsl = adjoint_model_mcf(dep_mcf, foh, mcf_sv)
+    dmcf0, dfoh_mcf, dfst, dfsl, dfme = adjoint_model_mcf(dep_mcf, foh, mcf_sv)
     dch4i, dr13i, dfoh_ch4, dfch4, dr13e = adjoint_model_ch4(dep_ch4, dep_r13, 
                                                 ch4i, r13i, foh, fch4, r13e,
                                                 ch4sv, c13sv)
     dfoh = dfoh_mcf + dfoh_ch4
     
     dJdx_obs = np.concatenate((dmcf0, dch4i, dr13i, dfoh, \
-                                dfst, dfsl, dfch4, dr13e))
+                                dfst, dfsl, dfme, dfch4, dr13e))
     dJdx_pri, _, _ = cost_bg(x)
     dJdx = dJdx_obs + dJdx_pri
     dJdxp = np.dot(L_adj, dJdx)
@@ -88,7 +88,8 @@ def cost_r13(r13m):
 
 def adjoint_model_mcf( dep, foh, mcf_save ):
     pulse_mcf = adj_oper_av( dep )
-    admcf,adfst,adfsl,adfoh = np.zeros(nt),np.zeros(nt),np.zeros(nt),np.zeros(nt)
+    admcf,adfoh = np.zeros(nt),np.zeros(nt)
+    adfst,adfsl,adfme = np.zeros(nt),np.zeros(nt),np.zeros(nt)
     adshift = np.zeros(nt)
     admcfi = 0.
     rapidc = rapid / conv_mcf
@@ -113,7 +114,10 @@ def adjoint_model_mcf( dep, foh, mcf_save ):
         adfsl[i] -= 0.75 * rapidc[ie] * adshift[i]
         if (iyear + 2) < edyear: adfsl[i] += 0.75 * rapidc[ie] * adshift[i+2]
         admcf[i] = admcfi
-    adj_mcf = [array([admcfi]),adfoh,adfst,adfsl]
+        # Emissions medium
+        adfme[i] -= 0.5 * rapidc[ie] * adshift[i]
+        if (iyear+1) < edyear: adfme[i] += 0.5 * rapidc[ie] * adshift[i+1]
+    adj_mcf = [array([admcfi]),adfoh,adfst,adfsl,adfme]
     return adj_mcf
     
 def adjoint_model_ch4(dep_ch4, dep_r13, ch4i_sv, r13i_sv, foh_sv, fch4_sv, r13e_sv, 
@@ -146,7 +150,7 @@ def adjoint_model_ch4(dep_ch4, dep_r13, ch4i_sv, r13i_sv, foh_sv, fch4_sv, r13e_
     return adj_ch4
 
 def forward_tl_mcf(x, foh, mcf_save):
-    dmcf0, _, _, dfoh, dfst, dfsl, _, _ = unpack(x)
+    dmcf0, _, _, dfoh, dfst, dfsl, dfme, _, _ = unpack(x)
     dmcfs = np.zeros((nt,nstep))
     dmcfi = dmcf0
     rapidc = rapid/conv_mcf
@@ -160,9 +164,12 @@ def forward_tl_mcf(x, foh, mcf_save):
             i2  = yearb - styear
             ie2 = yearb - 1951
             if yearb >= styear: dshift += 0.1*dfst[i2]*rapidc[ie2]
-        # ... and from fslow
+        # ... from fslow ...
         dshift -= 0.75 * rapidc[ie] * dfsl[i]
         if i >= 2: dshift += 0.75 * rapidc[ie-2] * dfsl[i-2]
+        # ... and from fmedium.
+        dshift -= 0.5 * rapidc[ie] * dfme[i]
+        if i >= 1: dshift += 0.5 * rapidc[ie-1] * dfme[i-1]
         dshiftf = dshift*dt
         # Emission-chemistry interaction
         for n in range(nstep):
@@ -175,7 +182,7 @@ def forward_tl_mcf(x, foh, mcf_save):
     return obs_oper_av(dmcfs)
     
 def forward_tl_ch4(x, ch4i_sv, r13i_sv, foh_sv, fch4_sv, r13e_sv, ch4sv, c13sv):
-    _,dch4i, dr13i, dfoh, _, _, dfch4, dr13e = unpack(x)
+    _,dch4i, dr13i, dfoh, _, _, _, dfch4, dr13e = unpack(x)
     dch4s, dc13s = np.zeros((nt, nstep)), np.zeros((nt, nstep))
     # Initialization
     dch4 = dch4i
@@ -206,8 +213,8 @@ def forward_all(x):
     return mcf, ch4, r13, c13
 
 def forward_mcf(x):
-    mcf0, _, _, foh, fst, fsl, _, _ = unpack(x)
-    em = em0_mcf + mcf_shift(fst, fsl)
+    mcf0, _, _, foh, fst, fsl, fme, _, _ = unpack(x)
+    em = em0_mcf + mcf_shift(fst, fsl, fme)
     em /= conv_mcf
     mcfs = np.zeros((nt,nstep))
     mcf = mcf0
@@ -221,7 +228,7 @@ def forward_mcf(x):
     return obs_oper_av(mcfs)
 
 def forward_ch4(x):
-    _, ch4i, r13i, foh, _, _, fch4, r13e = unpack(x)
+    _, ch4i, r13i, foh, _, _, _, fch4, r13e = unpack(x)
     ch4s, c13s = np.zeros((nt,nstep)), np.zeros((nt,nstep))
     # Initialization
     ch4 = ch4i
@@ -243,7 +250,7 @@ def forward_ch4(x):
     ch4s_n, r13s_n = obs_oper_ch4(ch4s_av, c13s_av)
     return ch4s_n, r13s_n, c13s_av
 
-def mcf_shift(fst, fsl):
+def mcf_shift(fst, fsl, fme):
     '''
     Computes the shift in emissions that results from repartitioning of the production
     fst: the fraction of rapid emissions that is instead moved to the stockpile
@@ -263,6 +270,9 @@ def mcf_shift(fst, fsl):
         # Slow
         shift -= 0.75 * rapid[ie] * fsl[i]
         if i >= 2: shift += 0.75 * rapid[ie-2] * fsl[i-2]
+        # Medium
+        shift -= 0.5 * rapid[ie] * fme[i]
+        if i >= 1: shift += 0.5 * rapid[ie-1] * fme[i-1]
         shifts.append(shift)
     return array(shifts)
     
@@ -336,58 +346,21 @@ def unpack(x):
     ''' Unpacks the state vector. Returns the respective components. '''
     mcfi,ch4i,d13ci = x[0],x[1],x[2]
     foh = x[3:nt+3]
-    fstock,fslow = x[nt+3:2*nt+3],x[2*nt+3:3*nt+3]
-    fc12,fc13 = x[3*nt+3:4*nt+3],x[4*nt+3:5*nt+3]
-    
-    return mcfi, ch4i, d13ci, foh, fstock, fslow, fc12, fc13    
-
-def write_results(filename,header,years,mcf,ch4,d13c,fsl,fst,fch4,ed13c):
-    '''
-    Writes the optimized results to a separate file for future reference.
-    '''
-    fileloc = os.path.join(os.getcwd(), 'Data output',filename)
-    f = open(fileloc, 'w')
-    f.write(header+'\n')
-    for i,yr in enumerate(years):
-        f.write('%i\t%.3f\t%.3f\t%.3f\t'%(int(yr),mcf[i],ch4[i],d13c[i]))
-        f.write('%.3f\t%.3f\t%.3f\t%.3f'%(fsl[i],fst[i],fch4[i],ed13c[i]))
-        f.write('\n')
-    f.close()
-    
-def write_settings(filename,header,b,clen_oh,clen_em,\
-                    years,mcf_e,ch4_e,d13c_e):
-    '''
-    Writes the settings (prior and obs errors) of the run to a separate file
-    for future reference.
-    '''
-    fileloc = os.path.join(os.getcwd(), 'Data output',filename)
-    f = open(fileloc, 'w')
-    f.write(header+'\n')
-    prior_e = np.diag(b)
-    mcfi_e,ch4i_e,d13ci_e,foh_e,fst_e,fsl_e,fch4_e,ed13c_e = unpack(prior_e)
-    foh_e,fst_e,fsl_e,fch4_e,ed13c_e = foh_e[0],fst_e[0],fsl_e[0],fch4_e[0],ed13c_e[0]
-    f.write('# Prior settings:\n')
-    f.write('# Initial errors:\n\
-            MCF: %.3f ppt; CH4 %.3f ppb; d13C %.3f permil\n'%(mcfi_e,ch4i_e,d13ci_e))
-    f.write('# The other errors:\n\
-            foh: %.3f; fst: %.3f; fsl: %.3f; fch4: %.3f; ed13c_e: %.3f permil\n'%(foh_e,fst_e,fsl_e,fch4_e,ed13c_e))
-    f.write('# Correlation lengths:\n\
-            In OH: %.2f yr; in CH4 emissions: %.2f yr\n'%(clen_oh,clen_em))
-    f.write('# Observation errors:\n')
-    f.write('# Year\tMCF(ppt)\tCH4(ppb)\t(d13C(permil)\n')
-    for i,yr in enumerate(years):
-        f.write('%i\t%.3f\t%.3f\t%.3f'%(int(yr),mcf_e[i],ch4_e[i],d13c_e[i]))
-        f.write('\n')
-    f.close()
+    fstock,fslow,fmed = x[nt+3:2*nt+3],x[2*nt+3:3*nt+3],x[3*nt+3:4*nt+3]
+    fch4,fr13 = x[4*nt+3:5*nt+3],x[5*nt+3:6*nt+3]    
+    return mcfi, ch4i, d13ci, foh, fstock, fslow, fmed, fch4, fr13
 
 # Tuneable parameters
-exp_name = 'extend_noaa_mcf03'
+dataset = 'noaa'
+exp_name = 'emcf00_'+dataset
 header_p1 = '#\n'
 nstep = 400
 temp = 272.0  # Kelvin        
 oh = .9*1e6  # molecules/cm3
 styear,edyear = 1992,2015
 red = 1e-3
+save_fig = False # If true it save the figures that are produced
+write_data = True # If true writes opt results to output file
 
 # Constants
 dt = 1./nstep
@@ -422,14 +395,14 @@ nt = edyear-styear
 # Reading in the emission data and observations
 mcf_obs, mcf_obs_e = read_mcf_measurements()
 mcf_obs_e = mcf_obs_e[5:]
-yrs_mcf, mcf_obs = read_glob_mean(os.path.join('OBSERVATIONS', 'mcf_noaa_glob.txt'), styear, edyear)
+yrs_mcf, mcf_obs = read_glob_mean(os.path.join('OBSERVATIONS', 'mcf_'+dataset+'_glob.txt'), styear, edyear)
 for yr in range(2008,edyear):
     i = yr - 2008
     mcf_obs_e = np.append(mcf_obs_e,mcf_obs_e[-1]*.9**i)
 rapid,medium,slow,stock,em0_mcf,prod = read_mcf_emi(os.path.join('EMISSIONS','emissions.dat'))
 rapid,medium,slow,stock,em0_mcf,prod = extend_mcf_emi(rapid,medium,slow,stock,em0_mcf,edyear)
 #ch4_obs,ch4_obs_e = read_ch4_measurements()
-yrs_ch4, ch4_obs = read_glob_mean(os.path.join('OBSERVATIONS', 'ch4_noaa_glob.txt'), styear, edyear)
+yrs_ch4, ch4_obs = read_glob_mean(os.path.join('OBSERVATIONS', 'ch4_'+dataset+'_glob.txt'), styear, edyear)
 ch4_obs_e = array([3.0]*nt)
 em0_ch4 = array([590.0]*nt)*1e9
 d13c_obs,d13c_obs_e = read_d13C_obs(os.path.join('OBSERVATIONS','d13C_Schaefer.txt'))
@@ -451,17 +424,18 @@ r130_pri = array([r13_obs[0]])
 foh_pri = np.ones(nt)
 fsl_pri = np.zeros(nt)
 fst_pri = np.zeros(nt)
+fme_pri = np.zeros(nt)
 fch4_pri = np.ones(nt)
 r13e_pri = r13e0
 
 x_pri = np.concatenate((mcf0_pri, ch40_pri, r130_pri, foh_pri, \
-                       fst_pri,  fsl_pri,  fch4_pri,  r13e_pri))
+                       fst_pri,  fsl_pri, fme_pri,  fch4_pri,  r13e_pri))
 
 nstate = len(x_pri)
 # Constructing the prior error matrix b
 b = np.zeros((nstate,nstate))
 foh_e = .02 # error in initial oh fields
-fst_e = .03; fsl_e = .03   # mcf emission errors
+fst_e = .00004; fsl_e = .00004; fme_e = .00004   # mcf emission errors
 fch4_e = .15; ed13c_e = .8 # ch4 & d13c emission errors
 _, r13e_e = d13c_to_r13(em0_d13c[0], ed13c_e) # resulting error in r13e
 mcfi_e = 5.; ch4i_e = 5.; d13ci_e = 3. # error in initial values
@@ -481,14 +455,16 @@ for i in range(nt+3, 2*nt+3):
     b[i,i] = fst_e**2
 for i in range(2*nt+3, 3*nt+3):
     b[i,i] = fsl_e**2
-for i in range(3*nt+3,4*nt+3):
+for i in range(3*nt+3, 4*nt+3):
+    b[i,i] = fsl_e**2
+for i in range(4*nt+3,5*nt+3):
     b[i,i] = fch4_e**2
-    for j in range(3*nt+3,i):
+    for j in range(4*nt+3,i):
         b[i,j] = np.exp(-(i-j)/corlen_em)*fch4_e**2
         b[j,i] = b[i,j]
-for i in range(4*nt+3,5*nt+3): 
+for i in range(5*nt+3,6*nt+3): 
     b[i,i] = r13e_e**2
-#    for j in range(4*nt+3,i):
+#    for j in range(5*nt+3,i):
 #        b[i,j] = np.exp(-(i-j)/corlen_em)*r13e_e**2
 #        b[j,i] = b[i,j]
         
@@ -542,7 +518,8 @@ ax2b.plot(range(styear,edyear),J_r13_pri, color = 'red')
 ax2b.plot(range(styear,edyear),J_r13_opt, color = 'green')
 ax1.legend(loc='upper left')
 ax2.legend(loc='lower right')
-plt.savefig('d13C_CH4_concentrations_'+exp_name)
+if save_fig:
+    plt.savefig('d13C_CH4_concentrations_'+exp_name)
 
 fig_mcf = plt.figure(figsize = figSize)
 ax1 = fig_mcf.add_subplot(111)
@@ -557,15 +534,16 @@ ax1.plot(range(styear,edyear),mcf_opt  ,'-',color='green', label = 'mcf optimize
 ax1b.plot(range(styear,edyear),J_mcf_pri, color = 'red')
 ax1b.plot(range(styear,edyear),J_mcf_opt, color = 'green')
 ax1.legend(loc='best')
-plt.savefig('MCF_concentrations_'+exp_name)
+if save_fig:
+    plt.savefig('MCF_concentrations_'+exp_name)
 
 # Plotting prior state vs optimized state
-mcfi_opt, ch4i_opt, r13i_opt, foh_opt, fst_opt, fsl_opt, fch4_opt, r13e_opt = unpack(x_opt)  
-emcf_opt = em0_mcf + mcf_shift( fst_opt, fsl_opt )
+mcfi_opt, ch4i_opt, r13i_opt, foh_opt, fst_opt, fsl_opt, fme_opt, fch4_opt, r13e_opt = unpack(x_opt)  
+emcf_opt = em0_mcf + mcf_shift(fst_opt, fsl_opt, fme_opt)
 mcf_dev = emcf_opt/em0_mcf - 1.
 oh_pri, oh_opt = foh_pri*oh/1.e6, foh_opt*oh/1.e6
 errors_oh = np.array([foh_e]*nt)*oh_pri
-emcf_pri, emcf_opt = em0_mcf + mcf_shift(fst_pri,fsl_pri), em0_mcf + mcf_shift(fst_opt,fst_opt)
+emcf_pri, emcf_opt = em0_mcf + mcf_shift(fst_pri,fsl_pri,fme_pri), em0_mcf + mcf_shift(fst_opt,fst_opt,fme_opt)
 error_e_mcf = sqrt(fst_e**2 + fsl_e**2)
 errors_e_mcf = array([error_e_mcf]*nt)*emcf_pri
 ech4_pri, ech4_opt = fch4_pri*em0_ch4, fch4_opt*em0_ch4
@@ -597,19 +575,24 @@ ax4.set_ylabel('$\delta^{13}$C (permil)')
 ax4.plot( range(styear,edyear), ed13c_pri, 'o-', color = 'red',   label = 'Prior'     )
 ax4.plot( range(styear,edyear), ed13c_opt  , 'o-', color = 'green', label = 'Optimized' )
 ax4.legend(loc='best')
-plt.savefig('full_state_pri_opt_'+exp_name)
+if save_fig:
+    plt.savefig('full_state_pri_opt_'+exp_name)
 
-fig = plt.figure(figsize = (10,30))
-ax1 = fig.add_subplot(311)
-ax2 = fig.add_subplot(312)
-ax3 = fig.add_subplot(313)
+fig = plt.figure(figsize = (10,40))
+ax1 = fig.add_subplot(411)
+ax2 = fig.add_subplot(412)
+ax3 = fig.add_subplot(413)
+ax4 = fig.add_subplot(414)
 ax1.set_ylabel('Optimized MCF emi shift (Gg/yr)')
 ax2.set_ylabel('fslow deviation (%)')
 ax3.set_ylabel('fstock deviation (%)')
 ax3.set_xlabel('Year')
-ax1.plot( range(styear,edyear), mcf_shift(fst_opt, fsl_opt)/1e6, 'o-', color = 'red',   label = 'Prior' )
-ax2.plot( range(styear,edyear), 100*(fsl_opt-fsl_pri)  , 'o-', color = 'green', label = 'Optimized' )
-ax3.plot( range(styear,edyear), 100*(fst_opt-fst_pri), 'o-', color = 'blue')
+ax1.plot( range(styear,edyear), mcf_shift(fst_opt, fsl_opt, fme_opt)/1e6, 'o-', color='red' )
+ax2.plot( range(styear,edyear), 100*(fsl_opt-fsl_pri)  , 'o-', color='green')
+ax3.plot( range(styear,edyear), 100*(fst_opt-fst_pri), 'o-', color='blue')
+ax4.plot( range(styear,edyear), 100*(fme_opt-fme_pri), 'o-', color='c')
+if save_fig:
+    plt.savefig('MCF_emissions_'+exp_name)
 
 rel_dev = (x_opt - x_pri)
 fig = plt.figure(figsize = figSize)
@@ -621,10 +604,11 @@ ax1.plot( range(styear,edyear), 100.*(foh_opt - foh_pri), 'o-', color = 'blue', 
 ax1.plot( range(styear,edyear), 100.*mcf_dev, 'o-', color = 'green', label = 'MCF' )
 ax1.plot( range(styear,edyear), 100.*(fch4_opt - fch4_pri), 'o-', color = 'red', label = r'CH$_4$' )
 ax1.legend(loc='best')
-plt.savefig('rel_dev_from_prior_'+exp_name)
+if save_fig:
+    plt.savefig('rel_dev_from_prior_'+exp_name)
 
 _,_,J_pri = cost_bg(x_opt) # prior
-_, _, _, J_pri_foh, J_pri_fst, J_pri_fsl, J_pri_fch4, J_pri_r13e = unpack(J_pri)
+_, _, _, J_pri_foh, J_pri_fst, J_pri_fsl, J_pri_me, J_pri_fch4, J_pri_r13e = unpack(J_pri)
 
 fig_J = plt.figure(figsize = figSize)
 ax1 = fig_J.add_subplot(212)
@@ -643,35 +627,39 @@ ax2.plot( range(styear,edyear), J_ch4_opt, 'o-', color = 'red', label = r'CH$_4$
 ax2.plot( range(styear,edyear), J_r13_opt, 'o-', color = 'maroon', label = r'$\delta^{13}$C' )
 ax1.legend(loc='best')
 ax2.legend(loc='best')
-plt.savefig('cost_functions_state_'+exp_name)
+if save_fig:
+    plt.savefig('cost_functions_state_'+exp_name)
 
-# Writing the experiment data to a file in 2 files: One contains the experiment
-# settings, the other the optimized results
+if write_data:
+    # Writing the experiment data to a file in 2 files: One contains the experiment
+    # settings, the other the optimized results
+    header_p2 = '# Year\tMCF_opt(ppt)\tCH4_opt(ppb)\td13C_opt(perm)\tfsl_opt\t\
+                fst_opt\tfch4_opt\ted13C_opt(perm)'
+    head_res = header_p1+header_p2
+    head_set = '# The settings used in the experiment'
+    years = range(styear, edyear)
+    write_results(exp_name+'_results.txt',head_res,years,mcf_opt,ch4_opt,d13c_opt,\
+                  fsl_opt,fst_opt,fme_opt,fch4_opt,ed13c_opt)
+    write_settings(exp_name+'_settings.txt',head_set,b,corlen_oh,corlen_em,years,mcf_obs_e,ch4_obs_e,d13c_obs_e)
+    # Save the results as a numpy array
+    full_array = np.transpose((years,mcf_opt,ch4_opt,d13c_opt,foh_opt,fst_opt,fsl_opt,fme_opt,fch4_opt,ed13c_opt))
+    full_file = os.path.join(os.getcwd(), 'Data output','arrays',exp_name+'_full')
+    xopt_file = os.path.join(os.getcwd(), 'Data output','arrays',exp_name+'_xopt')
+    np.savetxt(full_file,full_array)
+    np.savetxt(xopt_file,x_opt)
 
-header_p2 = '# Year\tMCF_opt(ppt)\tCH4_opt(ppb)\td13C_opt(perm)\tfsl_opt\t\
-            fst_opt\tfch4_opt\ted13C_opt(perm)'
-head_res = header_p1+header_p2
-head_set = '# The settings used in the experiment'
-years = range(styear, edyear)
-write_results(exp_name+'_results.txt',head_res,years,mcf_opt,ch4_opt,d13c_opt,\
-              fsl_opt,fst_opt,fch4_opt,ed13c_opt)
-write_settings(exp_name+'_settings.txt',head_set,b,corlen_oh,corlen_em,years,mcf_obs_e,ch4_obs_e,d13c_obs_e)
-# Save the results as a numpy array
-res_array = np.transpose((years,mcf_opt,ch4_opt,d13c_opt,fsl_opt,fst_opt,fch4_opt,ed13c_opt))
-array_file = os.path.join(os.getcwd(), 'Data output',exp_name+'_ndarray')
-np.savetxt(array_file,res_array)
+
+
+
+
+
+
+
+
+
 
 mcfff = mcf_obs # For use in data_plots
 chhh4 = ch4_obs # For use in data_plots
-
-
-ch4_growth = [ch4_opt[i] - ch4_opt[i-1] for i in range(1,nt)]
-
-plt.figure()
-plt.plot(oh_opt[:-1],ch4_growth,'o')
-
-
-
 
 
 

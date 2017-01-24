@@ -497,8 +497,44 @@ def read_glob_mean(fil,sty,edy,errors=False):
     if errors == True: return array(yrs),array(vals),array(vals_e)
     return array(yrs),array(vals)
     
+def write_results(filename,header,years,mcf,ch4,d13c,fsl,fst,fme,fch4,ed13c):
+    '''
+    Writes the optimized results to a separate file for future reference.
+    '''
+    fileloc = os.path.join(os.getcwd(), 'Data output',filename)
+    f = open(fileloc, 'w')
+    f.write(header+'\n')
+    for i,yr in enumerate(years):
+        f.write('%i\t%.3f\t%.3f\t%.3f\t'%(int(yr),mcf[i],ch4[i],d13c[i]))
+        f.write('%.3f\t%.3f\t%.3f\t'%(fme[i],fsl[i],fst[i]))
+        f.write('%.3f\t%.3f\n'%(fch4[i],ed13c[i]))
+    f.close()
     
-    
+def write_settings(filename,header,b,clen_oh,clen_em,\
+                    years,mcf_e,ch4_e,d13c_e):
+    '''
+    Writes the settings (prior and obs errors) of the run to a separate file
+    for future reference.
+    '''
+    fileloc = os.path.join(os.getcwd(), 'Data output',filename)
+    f = open(fileloc, 'w')
+    f.write(header+'\n')
+    prior_e = np.diag(b)
+    mcfi_e,ch4i_e,d13ci_e,foh_e,fst_e,fsl_e,fme_e,fch4_e,ed13c_e = unpack(prior_e)
+    foh_e,fst_e,fsl_e,fch4_e,ed13c_e = foh_e[0],fst_e[0],fsl_e[0],fch4_e[0],ed13c_e[0]
+    f.write('# Prior settings:\n')
+    f.write('# Initial errors:\n\
+            MCF: %.3f ppt; CH4 %.3f ppb; d13C %.3f permil\n'%(mcfi_e,ch4i_e,d13ci_e))
+    f.write('# The other errors:\n\
+            foh: %.3f; fst: %.3f; fsl: %.3f; fch4: %.3f; ed13c_e: %.3f permil\n'%(foh_e,fst_e,fsl_e,fch4_e,ed13c_e))
+    f.write('# Correlation lengths:\n\
+            In OH: %.2f yr; in CH4 emissions: %.2f yr\n'%(clen_oh,clen_em))
+    f.write('# Observation errors:\n')
+    f.write('# Year\tMCF(ppt)\tCH4(ppb)\t(d13C(permil)\n')
+    for i,yr in enumerate(years):
+        f.write('%i\t%.3f\t%.3f\t%.3f'%(int(yr),mcf_e[i],ch4_e[i],d13c_e[i]))
+        f.write('\n')
+    f.close()
     
     
     
