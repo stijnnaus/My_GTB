@@ -352,7 +352,7 @@ def unpack(x):
 
 # Tuneable parameters
 dataset = 'noaa'
-exp_name = 'emcf00_'+dataset
+exp_name = 'normal_'+dataset
 header_p1 = '#\n'
 nstep = 400
 temp = 272.0  # Kelvin        
@@ -435,7 +435,7 @@ nstate = len(x_pri)
 # Constructing the prior error matrix b
 b = np.zeros((nstate,nstate))
 foh_e = .02 # error in initial oh fields
-fst_e = .00004; fsl_e = .00004; fme_e = .00004   # mcf emission errors
+fst_e = .03; fsl_e = .03; fme_e = .03   # mcf emission errors
 fch4_e = .15; ed13c_e = .8 # ch4 & d13c emission errors
 _, r13e_e = d13c_to_r13(em0_d13c[0], ed13c_e) # resulting error in r13e
 mcfi_e = 5.; ch4i_e = 5.; d13ci_e = 3. # error in initial values
@@ -456,7 +456,7 @@ for i in range(nt+3, 2*nt+3):
 for i in range(2*nt+3, 3*nt+3):
     b[i,i] = fsl_e**2
 for i in range(3*nt+3, 4*nt+3):
-    b[i,i] = fsl_e**2
+    b[i,i] = fme_e**2
 for i in range(4*nt+3,5*nt+3):
     b[i,i] = fch4_e**2
     for j in range(4*nt+3,i):
