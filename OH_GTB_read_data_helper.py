@@ -475,26 +475,27 @@ def agage(station,spec):
                trace.append(etrac)
       f.close()
    return date, array(trac), array(trace)
-   
-def read_glob_mean(fil, styear, edyear):
+    
+def read_glob_mean(fil,sty,edy,errors=False):
+    ''' 
+    Reads the global mean yearly data files I produced.
+    errors: True if errors are included in the file
     '''
-    Reads global yearly mean data files, where the first column contains
-    the year and the second column the mixing ratio.
-    Returns years and mixing ratios in 2 separate arrays.
-    '''
-    f = open(fil, mode='r')
-    yrs, vals = [], []
-    for line in f.readlines():
+    f=open(fil)
+    yrs,vals,vals_e = [],[],[]
+    j=0
+    for i,line in enumerate(f.readlines()):
         if line[0] == '#': continue
         lin = line.split()
-        yr,val = float(lin[0]),float(lin[1])
-        if yr>=styear and yr<edyear:
+        yr = float(lin[0])
+        if yr>=sty and yr<edy:
+            j+=1
             yrs.append(yr)
-            vals.append(val)
+            vals.append(float(lin[1]))
+            if errors == True:
+                vals_e.append(float(lin[2]))
+    if errors == True: return array(yrs),array(vals),array(vals_e)
     return array(yrs),array(vals)
-        
-    
-    
     
     
     

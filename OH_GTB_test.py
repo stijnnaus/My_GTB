@@ -11,7 +11,7 @@ nstep = 5
 dt = 1./nstep
 
 # MCF adjoint test
-if False:
+if True:
     nnrun = 50
     rats = zeros(nnrun)
     for m in range(nnrun):
@@ -32,44 +32,31 @@ if False:
     print 'mcf adjoint test result: ',dot(Mx,y) / dot(x1,MTy)
     #print MTy
 
-# 12CH4 adjoint test
+# CH4 adjoint test
 if True:
-    xbase = 2*np.random.rand( nxstate )
-    foh_tes = xbase[:nt]
-    c12_tes = forward_c12(xbase)
+    print 'Running the adjoint test for CH4 ...'
+    # Preparation
+    x_base = 50.*np.random.rand( nxstate )
+    ch4sv, r13sv, c13sv = forward_ch4(x_base)
+    _, ch4i_sv, r13i_sv, fohsv, _, _, fch4sv, r13e_sv = unpack(x_base)
+    ## Full test
+    xx = 50.*np.random.rand( nxstate )
+    Mx_ch4, Mx_r13, _ = forward_tl_ch4(xx, ch4i_sv, r13i_sv, fohsv, fch4sv, r13e_sv,
+                                       ch4sv, c13sv)
+    yy_ch4 = 50 * (1-2*np.random.rand(nt))
+    yy_r13 = 1. + .1 * (1-2*np.random.rand(nt))
+    dch4i, dr13i, dfoh, dfch4, dr13e = adjoint_model_ch4(yy_ch4, yy_r13, ch4i_sv, 
+                                                   r13i_sv, fohsv, fch4sv, r13e_sv,
+                                                   ch4sv, c13sv)
+    Mx = np.concatenate((Mx_ch4, Mx_r13))
+    yy = np.concatenate((yy_ch4, yy_r13))
+    xx = np.concatenate((xx[1:nt+3],xx[3*nt+3:]))
+    MTy = np.concatenate((dch4i, dr13i, dfoh, dfch4, dr13e))
+    res_ful = np.dot(Mx,yy) / np.dot(xx,MTy)
     
-    x1 = 50.*np.random.rand( nxstate )
-    Mx = forward_tl_c12( x1, foh_tes, c12_tes )
-    x1 = np.concatenate(( array([x1[1]]), x1[3:nt+3], x1[3*nt+3:4*nt+3] ))
-    
-    y = 50-10000*np.random.rand(nt)
-    MTy0 = adjoint_model_c12( y, foh_tes, c12_tes )
-    MTy = np.concatenate(( array(MTy0[0]), MTy0[1],MTy0[2]))
-    
-    print 'c12 adjoint test result:',dot(Mx,y) / dot(x1,MTy)
-
-
-
-# 13CH4 adjoint test
-if True:
-    xbase = 2*np.random.rand( nxstate )
-    foh_tes = xbase[:nt]
-    c13_tes = forward_c13(xbase)
-    
-    x1 = 50.*np.random.rand( nxstate )
-    Mx = forward_tl_c13( x1, foh_tes, c13_tes )
-    x1 = np.concatenate(( array([x1[2]]), x1[3:nt+3], x1[4*nt+3:5*nt+3] ))
-    
-    y = 50-10000*np.random.rand(nt)
-    MTy0 = adjoint_model_c13( y, foh_tes, c13_tes )
-    MTy = np.concatenate(( array(MTy0[0]), MTy0[1], MTy0[2] ))
-    
-    print 'test result c13 adjoint:',dot(Mx,y) / dot(x1,MTy)
-    
-
+    print 'Full ch4 adjoint test result:', res_ful
 
 # Gradient test
-
 def grad_test(x0,pert = 10**(-5)):
     nx = len(x0)
     x0 = array(x0)
@@ -108,7 +95,7 @@ if run_grad_test:
     #x0_test = array([3.*np.random.random() for i in range(len(x_prior))])
     x0_test = x_opt + .1*np.random.rand(nstate)
     # The test
-    val,deriv,dfohh = grad_test(x0_test,pert=1e-7)
+    val,deriv,dfohh = grad_test(x0_test,pert=1e-5)
     
     print 'dfoh ratio predict/reduct:', mean(dfohh),std(dfohh)
     
