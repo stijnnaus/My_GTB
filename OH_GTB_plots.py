@@ -60,7 +60,7 @@ def combine_xopts(xopts):
         fsts.append(fst); fsls.append(fsl); fmes.append(fme)
     return mcfis,ch4is,r13is,fohs,fsts,fsls,fmes,fch4s,r13es
     
-def fig_reldev(xopts,labels,plottit,legtit,figname=None):
+def fig_reldev(xopts,labels,plottit,legtit=None,figname=None):
     '''
     Plots the deviations in OH, MCF emissions, CH4 emissions and 
     d13C in CH4 emissions for xopts. Deviations are relative to the prior.
@@ -87,10 +87,47 @@ def fig_reldev(xopts,labels,plottit,legtit,figname=None):
         ax4.plot(yrs, d13c[i]-em0_d13c, 'o-', color=sim_blu[i], label=labels[i])
     lgd=ax2.legend(bbox_to_anchor=(1.22,1.),title=legtit)
     fig.tight_layout()
-    if figname != None:
-        plt.savefig(figloc+'\\'+figname,bbox_extra_artists=(lgd,), bbox_inches='tight')
+    if figname==None: figname='default'
+    plt.savefig(figloc+'\\'+figname,bbox_extra_artists=(lgd,), bbox_inches='tight')
+        
+def fig_mcfch4_obs(xopts,labels,plottit,legtit=None,dataset=None,figname=None):
+    '''
+    Plots the MCF, CH4C observations, along with the model results
+    from xopts.
+    Dataset: Which dataset will be plotted. Either 'noaa','agage' or 'both'
+    ''' 
+    nexp = len(xopts)
+    fig = plt.figure(figsize=(10,50))
+    ax1 = fig.add_subplot(211) # MCF observations
+    ax2 = fig.add_subplot(212) # CH4 observations
+    ax1.set_title(plottit+'\n\nMethyl chloroform')
+    ax2.set_title(r'Methane')
+    ax3.set_title(r'$\delta^{13}$C in CH$_4$')
+    ax1.set_ylabel('MCF (ppt)'); ax2.set_ylabel(r'CH$_4$ (ppb)')
+    ax2.set_xlabel('Year')
+    if dataset=='noaa' or dataset=='both':
+        ax1.errorbar(yrs, mcf_noaa, yerr=mcf_obs_e, fmt='o', color='g',label='NOAA obs')
+        ax2.errorbar(yrs, ch4_noaa, yerr=ch4_obs_e, fmt='o', color='g',label='NOAA obs')
+    if dataset=='agage' or dataset=='both':
+        ax1.errorbar(yrs, mcf_agage, yerr=mcf_obs_e, fmt='o', color='r',label='AGAGE obs')
+        ax2.errorbar(yrs, ch4_agage, yerr=ch4_obs_e, fmt='o', color='r',label='AGAGE obs')
+    for i in range(nexp):
+        mcfi = forward_mcf(xopts[i])
+        ch4i,_,_ = forward_ch4(xopts[i])
+        ax1.plot(yrs, mcfi, '-', color=dif_col[i], label=labels[i]+' opt')
+        ax2.plot(yrs, ch4i, '-', color=dif_col[i], label=labels[i]+' opt')
+    lgd=ax2.legend(bbox_to_anchor=(1.24,1.),title=legtit)
+    fig.tight_layout()
+    if figname==None: figname='default'
+    plt.savefig(figloc+'\\'+figname,bbox_extra_artists=(lgd,), bbox_inches='tight')
+    
+        
+        
+        
+        
+        
 
-dif_col = ['blue','black','red','indigo','steelblue','maroon','cyan'] # Very different colors
+dif_col = ['blue','maroon','steelblue','pink','black','cyan'] # Very different colors
 sim_blu = ['black','navy','blue','steelblue','lightsteelblue'] # Similar colors, going from dark to light
 sim_red = ['maroon', 'firebrick','red','lightcoral', 'yellow']
 figloc = os.path.join(os.getcwd(), 'Figures')
@@ -160,21 +197,37 @@ x_nomcf = read_x('offmcf', 'noaa')
 x_nooh = read_x('offoh', 'noaa')
 x_onoff = [x_normal, x_noch4, x_nomcf, x_nooh]
 lab_onoff = ['normal','no ch4','no mcf','no oh'] # label per experiment
-leg_onoff = '' # Legend title
 title_onoff = 'The effect of excluding one of the parameters from the optimization' # Plot title
 name_onoff = 'onoff.png' # Figure name
 # Drawing&saving the figure:
-fig_reldev(x_onoff,lab_onoff,title_onoff,leg_onoff,name_onoff)
+fig_reldev(x_onoff,lab_onoff,title_onoff,figname=name_onoff)
 
+# NOAA vs AGAGE
+x_noaa = read_x('normal', 'noaa')
+x_agag = read_x('normal', 'agage')
+x_sets = [x_noaa,x_agag]
+lab_sets = ['NOAA', 'AGAGE']
+name_sets = 'dataset_comp_mcf_ch4.png'
+tit_sets = 'Comparison of observations from the two \n\
+    datasets, and their optimized results'
+fig_mcfch4_obs(x_sets, lab_sets, tit_sets, dataset='both',figname=name_sets)
 
+name_sets2 = 'dataset_comp_reldev.png'
+tit_sets2 = 'Comparison of the optimized states from the two datasets'
+fig_reldev(x_sets,lab_sets, tit_sets2, figname=name_sets2)
 
-
-
-
-
-
-
-
+# Varying MCF obs error
+x_mcfe05 = read_x('mcfe0.5','noaa')
+x_mcfe10 = read_x('normal','noaa')
+x_mcfe15 = read_x('mcfe1.5','noaa')
+x_mcfe20 = read_x('mcfe2.0','noaa')
+x_mcfe25 = read_x('mcfe2.5','noaa')
+x_mcfe = [x_mcfe05,x_mcfe10,x_mcfe15,x_mcfe20,x_mcfe25]
+lab_mcfe = ['x0.5','x1.0','x1.5','x2.0','x2.5']
+name_mcfe = 'varying_mcf_obs_e.png'
+leg_mcfe = 'Multiplication \n factor'
+tit_mcfe = 'The effect of varying the observation error in MCF'
+fig_reldev(x_mcfe,lab_mcfe,tit_mcfe,legtit=leg_mcfe,figname=name_mcfe)
 
 
 

@@ -352,7 +352,7 @@ def unpack(x):
 
 # Tuneable parameters
 dataset = 'noaa'
-exp_name = 'normal_'+dataset
+exp_name = 'mcfe0.5_'+dataset
 header_p1 = '#\n'
 nstep = 400
 temp = 272.0  # Kelvin        
@@ -393,6 +393,10 @@ l_mcf_stratf = l_mcf_strat * dt
 nt = edyear-styear
 
 # Reading in the emission data and observations
+_, mcf_noaa = read_glob_mean(os.path.join('OBSERVATIONS', 'mcf_noaa_glob.txt'), styear, edyear)
+_, mcf_agage = read_glob_mean(os.path.join('OBSERVATIONS', 'mcf_agage_glob.txt'), styear, edyear)
+_, ch4_noaa = read_glob_mean(os.path.join('OBSERVATIONS', 'ch4_noaa_glob.txt'), styear, edyear)
+_, ch4_agage = read_glob_mean(os.path.join('OBSERVATIONS', 'ch4_agage_glob.txt'), styear, edyear)
 mcf_obs, mcf_obs_e = read_mcf_measurements()
 mcf_obs_e = mcf_obs_e[5:]
 yrs_mcf, mcf_obs = read_glob_mean(os.path.join('OBSERVATIONS', 'mcf_'+dataset+'_glob.txt'), styear, edyear)
@@ -411,7 +415,7 @@ em0_d13c = array([-53.]*nt)
 r13_obs, r13_obs_e = d13c_to_r13(d13c_obs, d13c_obs_e)
 r13e0 = d13c_to_r13(em0_d13c)
 
-fec,femcf = 1.,1. # Reduction of the error
+fec,femcf = 1.,.5 # Reduction of the error
 mcf_obs_e *= femcf
 ch4_obs_e *= fec
 d13c_obs_e *= fec
