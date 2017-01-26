@@ -13,7 +13,7 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
-
+plt.rcParams.update({'font.size': 12})
 
 def read_full(exp_name, dataset):
     '''Reads the 'full' array (opt C and E and OH)'''
@@ -102,7 +102,6 @@ def fig_mcfch4_obs(xopts,labels,plottit,legtit=None,dataset=None,figname=None):
     ax2 = fig.add_subplot(212) # CH4 observations
     ax1.set_title(plottit+'\n\nMethyl chloroform')
     ax2.set_title(r'Methane')
-    ax3.set_title(r'$\delta^{13}$C in CH$_4$')
     ax1.set_ylabel('MCF (ppt)'); ax2.set_ylabel(r'CH$_4$ (ppb)')
     ax2.set_xlabel('Year')
     if dataset=='noaa' or dataset=='both':
@@ -121,12 +120,94 @@ def fig_mcfch4_obs(xopts,labels,plottit,legtit=None,dataset=None,figname=None):
     if figname==None: figname='default'
     plt.savefig(figloc+'\\'+figname,bbox_extra_artists=(lgd,), bbox_inches='tight')
     
+def fig_all_obs(xopts,labels,plottit,legtit=None,dataset=None,figname=None):
+    '''
+    Plots the MCF, CH4 and d13C observations, along with the model results
+    from xopts.
+    Dataset: Which dataset will be plotted. Either 'noaa','agage' or 'both'
+    ''' 
+    nexp = len(xopts)
+    fig = plt.figure(figsize=(10,50))
+    ax1 = fig.add_subplot(311) # MCF observations
+    ax2 = fig.add_subplot(312) # CH4 observations
+    ax3 = fig.add_subplot(313) # d13C observations
+    ax1.set_title(plottit+'\n\nMethyl chloroform')
+    ax2.set_title(r'Methane')
+    ax3.set_title(r'$\delta^{13}$C in CH$_4$')
+    ax1.set_ylabel('MCF (ppt)'); ax2.set_ylabel(r'CH$_4$ (ppb)')
+    ax3.set_ylabel(r'$\delta^{13}$C (permil)')
+    ax3.set_xlabel('Year')
+    if dataset=='noaa' or dataset=='both':
+        ax1.errorbar(yrs, mcf_noaa, yerr=mcf_obs_e, fmt='o', color='g',label='NOAA obs')
+        ax2.errorbar(yrs, ch4_noaa, yerr=ch4_obs_e, fmt='o', color='g',label='NOAA obs')
+    if dataset=='agage' or dataset=='both':
+        ax1.errorbar(yrs, mcf_agage, yerr=mcf_obs_e, fmt='o', color='r',label='AGAGE obs')
+        ax2.errorbar(yrs, ch4_agage, yerr=ch4_obs_e, fmt='o', color='r',label='AGAGE obs')
+    ax3.errorbar(yrs, d13c_obs, yerr=d13c_obs_e, fmt='o', color='g', label='obs')
+    for i in range(nexp):
+        mcfi = forward_mcf(xopts[i])
+        ch4i,r13i,_ = forward_ch4(xopts[i])
+        d13ci = r13_to_d13c(r13i)
+        ax1.plot(yrs, mcfi, '-', color=dif_col[i], label=labels[i]+' opt')
+        ax2.plot(yrs, ch4i, '-', color=dif_col[i], label=labels[i]+' opt')
+        ax3.plot(yrs, d13ci,'-', color=dif_col[i], label=labels[i]+' opt')
+    lgd=ax2.legend(bbox_to_anchor=(1.24,1.),title=legtit)
+    fig.tight_layout()
+    if figname==None: figname='default'
+    plt.savefig(figloc+'\\'+figname,bbox_extra_artists=(lgd,), bbox_inches='tight')
+    
+def fig_oh_v_ch4growth(xopts,labels,plottit,legtit=None,dataset='noaa',figname=None):
+    '''
+    Plots the CH4 growth rate versus OH concentrations.
+    '''
+    if dataset=='noaa':
+        ch4_growth = [ch4_noaa[i]-ch4_noaa[i-1] for i in range(1,nt)]
+    elif dataset=='agage':
+        ch4_growth = [ch4_agage[i]-ch4_agage[i-1] for i in range(1,nt)]
+    else: print 'Select a valid dataset: NOAA or AGAGE!'
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    ax1.set_title(plottit+'\n\n The correlation between the OH and the CH4 growth rate')
+    ax1.set_xlabel('CH4 growth rate (ppb/yr)')
+    ax1.set_ylabel(oh_lab)
+    for i,xopt in enumerate(xopts):
+        _,_,_,fohi,_,_,_,_,_ = unpack(xopt)
+        ohu = fohi*oh
+        oh_mid = array([(ohu[j]+ohu[j-1])/2 for j in range(1,nt)])
+        cor = round(np.corrcoef(ch4_growth,oh_mid)[0,1],2)
+        ax1.plot(ch4_growth, oh_mid/1e6, 'o',color=dif_col[i], label=labels[i]+'(r='+str(cor)+')')
+    lgd=ax1.legend(bbox_to_anchor=(1.24,1.),title=legtit)
+    fig.tight_layout()
+    if figname==None: figname='default'
+    plt.savefig(figloc+'\\'+figname,bbox_extra_artists=(lgd,), bbox_inches='tight')
+    
+def lifetime_plot(xopts,labels,plottit,legtit=Noneb ,figname=None):
+    '''
+    Plot of MCF and CH4 lifetimes against OH and the total lifetime.
+    '''
+    fig = plt.figure()
+    ax1 = fig.add_subplot(211)
+    ax2 = fig.add_subplot(212)
+    ax1.set_title(plottit+'\n\n The lifetime of MCF against OH and in total')
+    ax2.set_title(r'The lifetime of CH$_4$ against OH and in total')
+    ax1.set_xlabel('Year')
+    ax1.set_ylabel('Lifetime (years)')
+    ax2.set_ylabel('Lifetime (years)')
+    for xopt in xopts:
+        _,_,_,fohi,_,_,_,_,_ = unpack(xopt)
+        loh = fohi*l_mcf_oh
+        tau_mcf_oh = 1/loh
+        tau_mcf_tot = 1/(loh+l_mcf_strat+l_mcf_ocean)
+        loh = fohi*l_ch4_oh
+        tau_ch4_oh = 1/loh
+        tau_ch4_tot = 1/(loh+l_ch4_other)
+        ax1.plot(yrs, tau_mcf_oh, 'o')
+        ax1.plot(yrs, tau_mcf_tot, 'v')
+        ax2.plot(yrs, tau_ch4_oh, 'o')
+        ax2.plot(yrs, tau_ch4_tot, 'v')
         
+                
         
-        
-        
-        
-
 dif_col = ['blue','maroon','steelblue','pink','black','cyan'] # Very different colors
 sim_blu = ['black','navy','blue','steelblue','lightsteelblue'] # Similar colors, going from dark to light
 sim_red = ['maroon', 'firebrick','red','lightcoral', 'yellow']
@@ -138,7 +219,6 @@ mcfe_lab = 'MCF emissions (Gg/yr)'
 ch4o_lab = r'CH$_4$ mixing ratio (ppb)'
 mcfo_lab = 'MCF mixing ratio (ppt)'
 oh_lab = 'OH concentration \n'+r'($10^6$ molec cm$^{-3}$)'
-
 
 # Comparing constraints on mcf emissions (experiment name 'em')
 x_emcf00 = read_x('emcf00', 'noaa')
@@ -171,7 +251,7 @@ ax1 = fig.add_subplot(411)
 ax2 = fig.add_subplot(412)
 ax3 = fig.add_subplot(413)
 ax4 = fig.add_subplot(414)
-ax1.set_title(r'CH$_4$ concentrations and $\delta^{13}$C concentrations:'+' both from\n observations and modelled forward from the prior.')
+ax1.set_title(r'The effect of varying the correlation length of CH$_4$ emissions.')
 ax1.set_ylabel(ch4o_lab)
 ax2.set_ylabel(d13c_lab)
 ax3.set_ylabel(ch4e_lab)
@@ -183,12 +263,12 @@ for i,x in enumerate(x_lens):
     ch4m,r13m,_ = forward_ch4(x)
     d13cm = r13_to_d13c(r13m)
     ax1.plot(yrs,ch4m,'-',color=sim_blu[i],label=r'CH$_4$, opt, '+lab_lens[i])
-    ax2.plot(yrs,d13cm,'-',color=sim_blu[i],label=r'$\delta^{13}$C, opt, '+lab_lens[i])
+    ax2.plot(yrs,d13cm,'-',color=sim_blu[i],label=lab_lens[i]+r', opt')
     ax3.plot(yrs,fch4_lens[i]*em0_ch4,'o-',color=sim_blu[i])
     ax4.plot(yrs,foh_lens[i]*oh/1e6,'o-',color=sim_blu[i])
-lgd=ax2.legend(bbox_to_anchor=(1.22,1.),title=leg_lens)
+lgd=ax2.legend(bbox_to_anchor=(1.26,1.),title=leg_lens)
 fig.tight_layout()
-plt.savefig(figloc+'\\'+'name_lens',bbox_extra_artists=(lgd,), bbox_inches='tight')
+plt.savefig(figloc+'\\'+'ch4_corlens',bbox_extra_artists=(lgd,), bbox_inches='tight')
 
 # What happens if I don't optimize one of the 3
 x_normal = read_x('normal', 'noaa')
@@ -198,9 +278,11 @@ x_nooh = read_x('offoh', 'noaa')
 x_onoff = [x_normal, x_noch4, x_nomcf, x_nooh]
 lab_onoff = ['normal','no ch4','no mcf','no oh'] # label per experiment
 title_onoff = 'The effect of excluding one of the parameters from the optimization' # Plot title
-name_onoff = 'onoff.png' # Figure name
+name_onoff = 'onoff_reldev.png' # Figure name
+name_onoff2 = 'onoff_obs.png'
 # Drawing&saving the figure:
 fig_reldev(x_onoff,lab_onoff,title_onoff,figname=name_onoff)
+fig_all_obs(x_onoff,lab_onoff,title_onoff,dataset='noaa',figname=name_onoff2)
 
 # NOAA vs AGAGE
 x_noaa = read_x('normal', 'noaa')
@@ -229,26 +311,34 @@ leg_mcfe = 'Multiplication \n factor'
 tit_mcfe = 'The effect of varying the observation error in MCF'
 fig_reldev(x_mcfe,lab_mcfe,tit_mcfe,legtit=leg_mcfe,figname=name_mcfe)
 
+# Varying the entire prior error simultaneously
+x_pri10 = read_x('prie1.0','noaa')
+x_pri06 = read_x('prie0.6','noaa')
+x_pri04 = read_x('prie0.4','noaa')
+x_pri02 = read_x('prie0.2','noaa')
+x_prie = [x_pri10,x_pri06,x_pri04,x_pri02]
+lab_prie = ['x1.0','x0.6','x0.4','x0.2']
+name_prie = 'vary_prior_e_reldev.png'
+name_prie2 = 'vary_prior_e_obs.png'
+leg_prie = 'Multiplication \n factor'
+tit_prie = 'The effect of varying the prior errors'
+fig_reldev(x_prie,lab_prie,tit_prie,legtit=leg_prie,figname=name_prie)
+fig_all_obs(x_prie, lab_prie, tit_prie, dataset='noaa',figname=name_prie2)
+
+# Growth rate CH4 and OH correlation plot
+title_cor = 'Influence of prior error on the strength of the correlation'
+lab_cor = ['normal','prierr*0.6','prierr*0.2']
+name_cor = 'CH4growth_vs_OH_prierr.png'
+x_cor = [x_pri10,x_pri06,x_pri02]
+fig_oh_v_ch4growth(x_cor,lab_cor,title_cor,figname=name_cor)
+x_cor2 = [x_noaa,x_agag]
+name_cor2 = 'CH4growth_vs_OH_datasets.png'
+lab_cor2 = ['NOAA','AGAGE']
+title_cor2 = 'Difference between NOAA and AGAGE'
+fig_oh_v_ch4growth(x_cor2,lab_cor2,title_cor2,figname=name_cor2)
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+fig_oh_v_ch4growth([x_noaa,x_noch4],['',''],'')

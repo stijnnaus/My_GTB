@@ -212,7 +212,11 @@ def forward_all(x):
     mcf,ch4,r13,c13 = forward_mcf(x),forward_ch4(x)
     return mcf, ch4, r13, c13
 
-def forward_mcf(x):
+def forward_mcf(x,lt=False):
+    '''
+    Forward MCF model. 
+    lt: If True, it also returns the MCF lifetimes set by OH
+    '''
     mcf0, _, _, foh, fst, fsl, fme, _, _ = unpack(x)
     em = em0_mcf + mcf_shift(fst, fsl, fme)
     em /= conv_mcf
@@ -225,6 +229,7 @@ def forward_mcf(x):
             mcf += emf
             mcf = mcf * ( 1 - l_mcf_ohf * foh[i] - l_mcf_oceanf - l_mcf_stratf )
             mcfs[i][n] = mcf
+    if lt==True: return obs_oper_av(mcfs),tau_oh,tau
     return obs_oper_av(mcfs)
 
 def forward_ch4(x):
@@ -352,7 +357,7 @@ def unpack(x):
 
 # Tuneable parameters
 dataset = 'noaa'
-exp_name = 'mcfe0.5_'+dataset
+exp_name = 'offch4_'+dataset
 header_p1 = '#\n'
 nstep = 400
 temp = 272.0  # Kelvin        
@@ -360,7 +365,7 @@ oh = .9*1e6  # molecules/cm3
 styear,edyear = 1992,2015
 red = 1e-3
 save_fig = False # If true it save the figures that are produced
-write_data = True # If true writes opt results to output file
+write_data = False # If true writes opt results to output file
 
 # Constants
 dt = 1./nstep
@@ -415,7 +420,7 @@ em0_d13c = array([-53.]*nt)
 r13_obs, r13_obs_e = d13c_to_r13(d13c_obs, d13c_obs_e)
 r13e0 = d13c_to_r13(em0_d13c)
 
-fec,femcf = 1.,.5 # Reduction of the error
+fec,femcf = 1.,1. # Reduction of the error
 mcf_obs_e *= femcf
 ch4_obs_e *= fec
 d13c_obs_e *= fec
@@ -423,7 +428,7 @@ r13_obs_e *= fec
 
 # The prior
 mcf0_pri = array([117.])
-ch40_pri = array([ch4_obs[0] / 1.01])
+ch40_pri = array([1730.])
 r130_pri = array([r13_obs[0]])
 foh_pri = np.ones(nt)
 fsl_pri = np.zeros(nt)
@@ -435,14 +440,16 @@ r13e_pri = r13e0
 x_pri = np.concatenate((mcf0_pri, ch40_pri, r130_pri, foh_pri, \
                        fst_pri,  fsl_pri, fme_pri,  fch4_pri,  r13e_pri))
 
+pri_e_red = 1.
+
 nstate = len(x_pri)
 # Constructing the prior error matrix b
 b = np.zeros((nstate,nstate))
-foh_e = .02 # error in initial oh fields
-fst_e = .03; fsl_e = .03; fme_e = .03   # mcf emission errors
-fch4_e = .15; ed13c_e = .8 # ch4 & d13c emission errors
+foh_e = .02*pri_e_red # error in initial oh fields
+fst_e = .03*pri_e_red; fsl_e = .03*pri_e_red; fme_e = .03*pri_e_red   # mcf emission errors
+fch4_e = .15*pri_e_red; ed13c_e = .8*pri_e_red # ch4 & d13c emission errors
 _, r13e_e = d13c_to_r13(em0_d13c[0], ed13c_e) # resulting error in r13e
-mcfi_e = 5.; ch4i_e = 5.; d13ci_e = 3. # error in initial values
+mcfi_e = 5.; ch4i_e = 5e-0; d13ci_e = 1. # error in initial values
 _, r13i_e = d13c_to_r13(d13c_obs[0], d13ci_e) # resulting error in r13i
 corlen_oh = 1. 
 corlen_em = 10.
