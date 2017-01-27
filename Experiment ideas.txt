@@ -1,0 +1,6 @@
+Some ideas for more experiments to perform with 4DVAR:
+
+- Optimized MCF NOAA with CH4 AGAGE and vice versa
+- Don't optimize d13C only
+- Use OH to optimize CH4 and compare what this means for MCF
+- 

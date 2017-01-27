@@ -255,6 +255,10 @@ def forward_ch4(x):
     ch4s_n, r13s_n = obs_oper_ch4(ch4s_av, c13s_av)
     return ch4s_n, r13s_n, c13s_av
 
+def mcf_shiftx(x):
+    _,_,_,_,fst,fsl,fme,_,_ = unpack(x)
+    return mcf_shift(fst,fsl,fme)
+
 def mcf_shift(fst, fsl, fme):
     '''
     Computes the shift in emissions that results from repartitioning of the production
@@ -356,8 +360,8 @@ def unpack(x):
     return mcfi, ch4i, d13ci, foh, fstock, fslow, fmed, fch4, fr13
 
 # Tuneable parameters
-dataset = 'noaa'
-exp_name = 'offch4_'+dataset
+dataset = 'agage'
+exp_name = 'normal'+'_'+dataset
 header_p1 = '#\n'
 nstep = 400
 temp = 272.0  # Kelvin        
@@ -365,7 +369,7 @@ oh = .9*1e6  # molecules/cm3
 styear,edyear = 1992,2015
 red = 1e-3
 save_fig = False # If true it save the figures that are produced
-write_data = False # If true writes opt results to output file
+write_data = True # If true writes opt results to output file
 
 # Constants
 dt = 1./nstep
@@ -440,7 +444,7 @@ r13e_pri = r13e0
 x_pri = np.concatenate((mcf0_pri, ch40_pri, r130_pri, foh_pri, \
                        fst_pri,  fsl_pri, fme_pri,  fch4_pri,  r13e_pri))
 
-pri_e_red = 1.
+pri_e_red = .5
 
 nstate = len(x_pri)
 # Constructing the prior error matrix b

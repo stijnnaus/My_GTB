@@ -6,14 +6,19 @@ Created on Tue Jan 24 13:30:54 2017
 
 The file in which I can combine experiments, saved from OH_GTB.
 I should run OH_GTB_read_data_helper, then OH_GBT, then this file
+
+vPP: This is the setup that produces powerpoint images. Mostly larger text.
 """
 
 import os
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import rcParams
 
-plt.rcParams.update({'font.size': 16})
+rcParams.update({'font.size': 16})
+rcParams.update({'lines.markersize': 9})
+rcParams.update({'lines.linewidth': 1.5})
 
 def read_full(exp_name, dataset):
     '''Reads the 'full' array (opt C and E and OH)'''
@@ -69,8 +74,10 @@ def fig_reldev(xopts,labels,plottit,legtit=None,figname=None):
     _,_,_,foh,fst,fsl,fme,fch4,r13e = combine_xopts(xopts)
     d13c = r13_to_d13c(r13e)
     fig = plt.figure(figsize=(10,100))
-    ax1 = fig.add_subplot(411); ax2 = fig.add_subplot(412)
-    ax3 = fig.add_subplot(413); ax4 = fig.add_subplot(414)
+    ax1 = fig.add_subplot(411); plt.locator_params(axis='y',nbins=6) 
+    ax2 = fig.add_subplot(412); plt.locator_params(axis='y',nbins=6)
+    ax3 = fig.add_subplot(413); plt.locator_params(axis='y',nbins=6)
+    ax4 = fig.add_subplot(414); plt.locator_params(axis='y',nbins=6)
     ax1.grid(True); ax2.grid(True); ax3.grid(True); ax4.grid(True)
     ax1.set_title(plottit+'\n\nRelative deviations in OH')
     ax2.set_title('Relative deviations in MCF emissions')
@@ -81,11 +88,11 @@ def fig_reldev(xopts,labels,plottit,legtit=None,figname=None):
     ax4.set_xlabel('Year')
     for i in range(nexp):
         mcfdev = mcf_shift(fst[i],fsl[i],fme[i])/em0_mcf
-        ax1.plot(yrs, 100*(foh[i]-1), 'o-', color=sim_blu[i], label=labels[i])
-        ax2.plot(yrs, 100*mcfdev, 'o-', color=sim_blu[i], label=labels[i])
-        ax3.plot(yrs, 100*(fch4[i]-1), 'o-', color=sim_blu[i], label=labels[i])
-        ax4.plot(yrs, d13c[i]-em0_d13c, 'o-', color=sim_blu[i], label=labels[i])
-    lgd=ax2.legend(bbox_to_anchor=(1.22,1.),title=legtit)
+        ax1.plot(yrs, 100*(foh[i]-1), 'o-', color=dif_col[i], label=labels[i])
+        ax2.plot(yrs, 100*mcfdev, 'o-', color=dif_col[i], label=labels[i])
+        ax3.plot(yrs, 100*(fch4[i]-1), 'o-', color=dif_col[i], label=labels[i])
+        ax4.plot(yrs, d13c[i]-em0_d13c, 'o-', color=dif_col[i], label=labels[i])
+    lgd=ax2.legend(bbox_to_anchor=(1.32,1.),title=legtit)
     fig.tight_layout()
     if figname==None: figname='default'
     plt.savefig(figloc+'\\'+figname,bbox_extra_artists=(lgd,), bbox_inches='tight')
@@ -97,12 +104,13 @@ def fig_mcfch4_obs(xopts,labels,plottit,legtit=None,dataset=None,figname=None):
     Dataset: Which dataset will be plotted. Either 'noaa','agage' or 'both'
     ''' 
     nexp = len(xopts)
-    fig = plt.figure(figsize=(10,50))
+    fig = plt.figure(figsize=(15,50))
     ax1 = fig.add_subplot(211) # MCF observations
     ax2 = fig.add_subplot(212) # CH4 observations
     ax1.set_title(plottit+'\n\nMethyl chloroform')
     ax2.set_title(r'Methane')
     ax1.set_ylabel('MCF (ppt)'); ax2.set_ylabel(r'CH$_4$ (ppb)')
+    ax1.grid(True); ax2.grid(True)
     ax2.set_xlabel('Year')
     if dataset=='noaa' or dataset=='both':
         ax1.errorbar(yrs, mcf_noaa, yerr=mcf_obs_e, fmt='o', color='g',label='NOAA obs')
@@ -115,7 +123,8 @@ def fig_mcfch4_obs(xopts,labels,plottit,legtit=None,dataset=None,figname=None):
         ch4i,_,_ = forward_ch4(xopts[i])
         ax1.plot(yrs, mcfi, '-', color=dif_col[i], label=labels[i]+' opt')
         ax2.plot(yrs, ch4i, '-', color=dif_col[i], label=labels[i]+' opt')
-    lgd=ax2.legend(bbox_to_anchor=(1.3,1.),title=legtit)
+    plt.locator_params(axis='y',nbins=5)
+    lgd=ax2.legend(bbox_to_anchor=(1.32,1.),title=legtit)
     fig.tight_layout()
     if figname==None: figname='default'
     plt.savefig(figloc+'\\'+figname,bbox_extra_artists=(lgd,), bbox_inches='tight')
@@ -129,14 +138,18 @@ def fig_all_obs(xopts,labels,plottit,legtit=None,dataset=None,figname=None):
     nexp = len(xopts)
     fig = plt.figure(figsize=(10,50))
     ax1 = fig.add_subplot(311) # MCF observations
+    plt.locator_params(axis='y',nbins=5)
     ax2 = fig.add_subplot(312) # CH4 observations
+    plt.locator_params(axis='y',nbins=5)
     ax3 = fig.add_subplot(313) # d13C observations
-    ax1.set_title(plottit+'\n\nMethyl chloroform')
-    ax2.set_title(r'Methane')
-    ax3.set_title(r'$\delta^{13}$C in CH$_4$')
+    plt.locator_params(axis='y',nbins=5)
+    #ax1.set_title(plottit+'\n\nMethyl chloroform')
+    #ax2.set_title(r'Methane')
+    #ax3.set_title(r'$\delta^{13}$C in CH$_4$')
     ax1.set_ylabel('MCF (ppt)'); ax2.set_ylabel(r'CH$_4$ (ppb)')
     ax3.set_ylabel(r'$\delta^{13}$C (permil)')
-    ax3.set_xlabel('Year')
+    #ax3.set_xlabel('Year')
+    ax1.grid(True); ax2.grid(True); ax3.grid(True)
     if dataset=='noaa' or dataset=='both':
         ax1.errorbar(yrs, mcf_noaa, yerr=mcf_obs_e, fmt='o', color='g',label='NOAA obs')
         ax2.errorbar(yrs, ch4_noaa, yerr=ch4_obs_e, fmt='o', color='g',label='NOAA obs')
@@ -151,7 +164,7 @@ def fig_all_obs(xopts,labels,plottit,legtit=None,dataset=None,figname=None):
         ax1.plot(yrs, mcfi, '-', color=dif_col[i], label=labels[i]+' opt')
         ax2.plot(yrs, ch4i, '-', color=dif_col[i], label=labels[i]+' opt')
         ax3.plot(yrs, d13ci,'-', color=dif_col[i], label=labels[i]+' opt')
-    lgd=ax2.legend(bbox_to_anchor=(1.3,1.),title=legtit)
+    lgd=ax2.legend(bbox_to_anchor=(1.32,1.),title=legtit)
     fig.tight_layout()
     if figname==None: figname='default'
     plt.savefig(figloc+'\\'+figname,bbox_extra_artists=(lgd,), bbox_inches='tight')
@@ -167,7 +180,8 @@ def fig_oh_v_ch4growth(xopts,labels,plottit,legtit=None,dataset='noaa',figname=N
     else: print 'Select a valid dataset: NOAA or AGAGE!'
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
-    ax1.set_title(plottit+'\n\n The correlation between the OH and the CH4 growth rate')
+    plt.locator_params(axis='y',nbins=6)
+    #ax1.set_title(plottit+'\n\n The correlation between the OH and the CH4 growth rate')
     ax1.set_xlabel('CH4 growth rate (ppb/yr)')
     ax1.set_ylabel(oh_lab)
     for i,xopt in enumerate(xopts):
@@ -175,8 +189,10 @@ def fig_oh_v_ch4growth(xopts,labels,plottit,legtit=None,dataset='noaa',figname=N
         ohu = fohi*oh
         oh_mid = array([(ohu[j]+ohu[j-1])/2 for j in range(1,nt)])
         cor = round(np.corrcoef(ch4_growth,oh_mid)[0,1],2)
-        ax1.plot(ch4_growth, oh_mid/1e6, 'o',color=dif_col[i], label=labels[i]+'(r='+str(cor)+')')
-    lgd=ax1.legend(bbox_to_anchor=(1.24,1.),title=legtit)
+        ax1.plot(ch4_growth, oh_mid/1e6, 'o',color=sim_blu[i+1], label=labels[i]+'(r='+str(cor)+')')
+    ax1.set_xlim([min(ch4_growth)-1,max(ch4_growth)+1])
+    ax1.set_ylim([0.86,0.91])
+    #lgd=ax1.legend(bbox_to_anchor=(1.35,1.),title=legtit)
     fig.tight_layout()
     if figname==None: figname='default'
     plt.savefig(figloc+'\\'+figname,bbox_extra_artists=(lgd,), bbox_inches='tight')
@@ -206,7 +222,32 @@ def lifetime_plot(xopts,labels,plottit,legtit=None ,figname=None):
         ax2.plot(yrs, tau_ch4_oh, 'o')
         ax2.plot(yrs, tau_ch4_tot, 'v')
         
-dif_col = ['blue','maroon','steelblue','pink','black','cyan'] # Very different colors
+def cor_calc(x_opt,dataset='noaa'):
+    '''
+    Calculates the correlation coefficients between several optimized and/or
+    observed parameters.
+    Returns correlation between: CH4 growth and OH; CH4 growth and CH4 emissions;
+                CH4 emissions and OH; MCF emissions and OH
+    '''
+    if dataset=='noaa':
+        ch4_growth = [ch4_noaa[i]-ch4_noaa[i-1] for i in range(1,nt)]
+    elif dataset=='agage':
+        ch4_growth = [ch4_agage[i]-ch4_agage[i-1] for i in range(1,nt)]
+    
+    _,_,_,fohi,fsti,fsli,fmei,fch4i,_ = unpack(x_agag)
+    ohu = fohi*oh
+    emcfu = em0_mcf+mcf_shift(fsti,fsli,fmei)
+    ech4u = fch4i*em0_ch4
+    oh_mid = array([(ohu[j]+ohu[j-1])/2 for j in range(1,nt)])
+    emcfu_mid = array([(emcfu[j]+emcfu[j-1])/2 for j in range(1,nt)])
+    ech4_mid = array([(ech4u[j]+ech4u[j-1])/2 for j in range(1,nt)])
+    cor_groh = round(np.corrcoef(ch4_growth,oh_mid)[0,1],2)
+    cor_grec = round(np.corrcoef(ch4_growth,ech4_mid)[0,1],2)
+    cor_ecoh = round(np.corrcoef(oh_mid,ech4_mid)[0,1],2)
+    cor_emoh = round(np.corrcoef(oh_mid,emcf_mid)[0,1],2)
+    return cor_groh, cor_grec, cor_ecoh, cor_emoh
+        
+dif_col = ['steelblue','maroon','blue','pink','black','cyan'] # Very different colors
 sim_blu = ['black','navy','blue','steelblue','lightsteelblue'] # Similar colors, going from dark to light
 sim_red = ['maroon', 'firebrick','red','lightcoral', 'yellow']
 figloc = os.path.join(os.getcwd(), 'Figures')
@@ -344,6 +385,7 @@ fig_oh_v_ch4growth([x_noaa,x_noch4],['',''],'')
 
 # Default normal obs plot
 fig_all_obs([x_noaa],['NOAA'],'',dataset='noaa',figname='standard_obs_plot.png')
+fig_reldev([x_noaa],['NOAA'],'',figname='standard_reldev')
 
 
 
@@ -359,25 +401,37 @@ fig_all_obs([x_noaa],['NOAA'],'',dataset='noaa',figname='standard_obs_plot.png')
 
 
 
+fig_oh_v_ch4growth([x_noaa],['NOAA'],'',figname='standard_growth_cor')
+fig_oh_v_ch4growth([x_noch4],[''],'',figname='noch4_growth_cor')
+
+_,_,_,fohi,_,_,_,fch4i,_ = unpack(x_agag)
+ohu = fohi*oh
+oh_mid = array([(ohu[j]+ohu[j-1])/2 for j in range(1,nt)])
+ech4u = fch4i*em0_ch4
+ech4_mid = array([(ech4u[j]+ech4u[j-1])/2 for j in range(1,nt)])
+ch4_growth = [ch4_agage[i]-ch4_agage[i-1] for i in range(1,nt)]
+cor = round(np.corrcoef(ch4_growth,oh_mid)[0,1],2)
+cor2 = round(np.corrcoef(ch4_growth,ech4_mid)[0,1],2)
+cor3 = round(np.corrcoef(oh_mid,ech4_mid)[0,1],2)
+
+
+_,_,_,fohi,_,_,_,fch4i,_ = unpack(x_noch4)
+ohu = fohi*oh
+oh_mid = array([(ohu[j]+ohu[j-1])/2 for j in range(1,nt)])
+ch4_growth = [ch4_noaa[i]-ch4_noaa[i-1] for i in range(1,nt)]
+cor = round(np.corrcoef(ch4_growth,oh_mid)[0,1],2)
+
+
+
+
+fig_reldev
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+dif = (mcf_noaa-mcf_agage)/mcf_obs_e
+dif = (ch4_noaa-ch4_agage)/ch4_obs_e
 
 
 
