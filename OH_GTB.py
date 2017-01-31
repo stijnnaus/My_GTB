@@ -360,8 +360,8 @@ def unpack(x):
     return mcfi, ch4i, d13ci, foh, fstock, fslow, fmed, fch4, fr13
 
 # Tuneable parameters
-dataset = 'agage'
-exp_name = 'normal'+'_'+dataset
+dataset = 'noaa'
+exp_name = 'normal2'+'_'+dataset
 header_p1 = '#\n'
 nstep = 400
 temp = 272.0  # Kelvin        
@@ -404,7 +404,7 @@ nt = edyear-styear
 # Reading in the emission data and observations
 _, mcf_noaa = read_glob_mean(os.path.join('OBSERVATIONS', 'mcf_noaa_glob.txt'), styear, edyear)
 _, mcf_agage = read_glob_mean(os.path.join('OBSERVATIONS', 'mcf_agage_glob.txt'), styear, edyear)
-_, ch4_noaa = read_glob_mean(os.path.join('OBSERVATIONS', 'ch4_noaa_glob.txt'), styear, edyear)
+_, ch4_noaa, ch4_noaa_e = read_glob_mean(os.path.join('OBSERVATIONS', 'ch4_noaa_glob.txt'), styear, edyear, errors=True)
 _, ch4_agage = read_glob_mean(os.path.join('OBSERVATIONS', 'ch4_agage_glob.txt'), styear, edyear)
 mcf_obs, mcf_obs_e = read_mcf_measurements()
 mcf_obs_e = mcf_obs_e[5:]
@@ -416,7 +416,8 @@ rapid,medium,slow,stock,em0_mcf,prod = read_mcf_emi(os.path.join('EMISSIONS','em
 rapid,medium,slow,stock,em0_mcf,prod = extend_mcf_emi(rapid,medium,slow,stock,em0_mcf,edyear)
 #ch4_obs,ch4_obs_e = read_ch4_measurements()
 yrs_ch4, ch4_obs = read_glob_mean(os.path.join('OBSERVATIONS', 'ch4_'+dataset+'_glob.txt'), styear, edyear)
-ch4_obs_e = array([3.0]*nt)
+#ch4_obs_e = array([3.0]*nt)
+ch4_obs_e = ch4_noaa_e
 em0_ch4 = array([590.0]*nt)*1e9
 d13c_obs,d13c_obs_e = read_d13C_obs(os.path.join('OBSERVATIONS','d13C_Schaefer.txt'))
 d13c_obs, d13c_obs_e = d13c_obs[4:], d13c_obs_e[4:]
