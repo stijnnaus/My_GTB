@@ -18,12 +18,28 @@ dt = 1./nstep
 # MCF adjoint test
 if run_adj:
     print 'Running the adjoint test for MCF ...'
-    nnrun = 50
+    nnrun = 500
     rats = zeros(nnrun)
+    time_frw = 0.
+    time_adj = 0.
+    time_J = 0.
+    time_dJ = 0.
     for m in range(nnrun):
         xbase = 2.*np.random.rand( nxstate )
         _,_,_,foh_tes,_,_,_,_,_ = unpack(xbase)
+        st = time.time()
         mcf_tes = forward_mcf(xbase)
+        ed = time.time()
+        time_frw+= ed-st
+        
+        st = time.time()
+        calculate_J(xbase)
+        ed = time.time()
+        time_J+= ed-st
+        st = time.time()
+        calculate_dJdx(xbase)
+        ed = time.time()
+        time_dJ+= ed-st
         
         x1_0 = 5.*np.random.rand(nxstate)
         mcfi0,_,_,foh0,fst0,fsl0,fme0,_,_ = unpack(x1_0)
@@ -31,12 +47,19 @@ if run_adj:
         x1 = np.concatenate((array([mcfi0]),foh0,fst0,fsl0,fme0))
         
         y = 50-100*np.random.rand(nt)
+        st = time.time()
         MTy0 = adjoint_model_mcf(y, foh_tes, mcf_tes)
+        ed = time.time()
+        time_adj+= ed-st
         MTy = np.concatenate((MTy0[0],MTy0[1],MTy0[2],MTy0[3],MTy0[4]))
     
         rats[m] = np.dot(Mx,y) / np.dot(x1,MTy)
     
     print 'mcf adjoint test result: ',np.dot(Mx,y) / np.dot(x1,MTy)
+    print 'forward runtime:',1000*round(time_frw,4)/nnrun,'ms per run'
+    print 'adjoint runtime:',1000*round(time_adj,4)/nnrun,'ms per run'
+    print 'cost    runtime:',1000*round(time_J,4)/nnrun,'ms per run'
+    print 'dJdx    runtime:',1000*round(time_dJ,4)/nnrun,'ms per run'
     #print MTy
 
 # CH4 adjoint test

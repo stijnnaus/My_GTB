@@ -31,7 +31,7 @@ def calculate_J(xp):
     J_tot = .5 * (J_pri+J_obs)
     #print 'Cost observations  :',J_obs*red
     #print 'Cost background    :',J_pri*red
-    print 'Cost function value:',J_tot*red
+    #print 'Cost function value:',J_tot*red
     return J_tot*red
     
 def calculate_dJdx(xp):
@@ -55,7 +55,7 @@ def calculate_dJdx(xp):
     dJdx_pri, _, _ = cost_bg(x)
     dJdx = dJdx_obs + dJdx_pri
     dJdxp = np.dot(L_adj, dJdx)
-    print 'Cost function deriv:',max(dJdxp)*red
+    #print 'Cost function deriv:',max(dJdxp)*red
     return dJdxp*red
     
 def cost_bg(x):
@@ -360,8 +360,8 @@ def unpack(x):
     return mcfi, ch4i, d13ci, foh, fstock, fslow, fmed, fch4, fr13
 
 # Tuneable parameters
-dataset = 'agage'
-exp_name = 'normal'+'_'+dataset
+dataset = 'noaa'
+exp_name = 'normal2'+'_'+dataset
 header_p1 = '#\n'
 nstep = 400
 temp = 272.0  # Kelvin        
@@ -372,6 +372,7 @@ fyears = np.arange(1951,edyear) # years for which I have MCF production
 red = 1e-3
 save_fig = False # If true it save the figures that are produced
 write_data = True # If true writes opt results to output file
+
 
 # Constants
 dt = 1./nstep
@@ -386,7 +387,7 @@ conv_c13 = xc13 / 10**9  * m / xmair # kg/ppb
 l_mcf_ocean = 1./83.0  # loss rate yr-1
 l_mcf_strat = 1./45.0
 l_mcf_oh = (1.64e-12*exp(-1520.0/temp))*oh  # in s-1
-l_ch4_oh = (2.45e-12*exp(-1775.0/temp))*oh  
+l_ch4_oh = (2.45e-12*exp(-1775.0/temp))*oh
 l_mcf_oh *= 3600.*24.0*365.0  # in yr-1
 l_ch4_oh *= 3600.*24.0*365.0
 a_ch4_oh = 1 - 3.9/1000 # fractionation by OH
@@ -406,7 +407,7 @@ nt = edyear-styear
 # Reading in the emission data and observations
 _, mcf_noaa = read_glob_mean(os.path.join('OBSERVATIONS', 'mcf_noaa_glob.txt'), styear, edyear)
 _, mcf_agage = read_glob_mean(os.path.join('OBSERVATIONS', 'mcf_agage_glob.txt'), styear, edyear)
-_, ch4_noaa = read_glob_mean(os.path.join('OBSERVATIONS', 'ch4_noaa_glob.txt'), styear, edyear)
+_, ch4_noaa, ch4_noaa_e = read_glob_mean(os.path.join('OBSERVATIONS', 'ch4_noaa_glob.txt'), styear, edyear, errors=True)
 _, ch4_agage = read_glob_mean(os.path.join('OBSERVATIONS', 'ch4_agage_glob.txt'), styear, edyear)
 mcf_obs, mcf_obs_e = read_mcf_measurements()
 mcf_obs_e = mcf_obs_e[5:]
@@ -418,7 +419,8 @@ rapid,medium,slow,stock,em0_mcf,prod = read_mcf_emi(os.path.join('EMISSIONS','em
 rapid,medium,slow,stock,em0_mcf,prod = extend_mcf_emi(rapid,medium,slow,stock,em0_mcf,edyear)
 #ch4_obs,ch4_obs_e = read_ch4_measurements()
 yrs_ch4, ch4_obs = read_glob_mean(os.path.join('OBSERVATIONS', 'ch4_'+dataset+'_glob.txt'), styear, edyear)
-ch4_obs_e = array([3.0]*nt)
+#ch4_obs_e = array([3.0]*nt)
+ch4_obs_e = ch4_noaa_e
 em0_ch4 = array([590.0]*nt)*1e9
 d13c_obs,d13c_obs_e = read_d13C_obs(os.path.join('OBSERVATIONS','d13C_Schaefer.txt'))
 d13c_obs, d13c_obs_e = d13c_obs[4:], d13c_obs_e[4:]
@@ -679,6 +681,33 @@ mcfff = mcf_obs # For use in data_plots
 chhh4 = ch4_obs # For use in data_plots
 
 
+Tt = np.linspace(272,274)
+kmcf0 = 1.64e-12*exp(-1520.0/temp)
+kmcf = 1.64e-12*exp(-1520.0/Tt)
+kch40 = 2.45e-12*exp(-1775.0/temp)
+kch4 = 2.45e-12*exp(-1775.0/Tt)
+kch4r = kch4/kch40-1
+ratio0 = kmcf/kch40
+ratio = kmcf/kch4
+#plt.figure()
+#plt.xlabel('Temperature')
+#plt.ylabel('Change in kmcf/kch4 (%)')
+#plt.title('The effect that a systematic bias in T will have on the ratio\n\
+#             between the reaction constant with OH of MCF and CH4, relative\n\
+#             to the T=272K basecase')
+#plt.plot(Tt,100*(ratio/ratio0-1), 'r-')
+#plt.grid()
+#plt.tight_layout()
+#plt.savefig('temp_effect_kch4_kmcf.png')
+plt.figure()
+plt.plot(Tt-temp,100*(kmcf/kmcf0-1), 'b-')
+plt.grid()
+plt.title('The effect that an increase in T over time will have on\n\
+            the MCF reaction rate, relative to the T=272K basecase')
+plt.xlabel('Temperature change')
+plt.ylabel('Change in kmcf (%)')
+plt.tight_layout()
+plt.savefig('temp_effect_kmcf.png')
 
 
 

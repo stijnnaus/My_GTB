@@ -174,12 +174,13 @@ def fig_oh_v_ch4growth(xopts,labels,plottit,legtit=None,dataset='noaa',figname=N
     Plots the CH4 growth rate versus OH concentrations.
     '''
     if dataset=='noaa':
-        ch4_growth = [ch4_noaa[i]-ch4_noaa[i-1] for i in range(1,nt)]
+        ch4_growth = ch4_noaa[1:] - ch4_noaa[:-1]
     elif dataset=='agage':
-        ch4_growth = [ch4_agage[i]-ch4_agage[i-1] for i in range(1,nt)]
+        ch4_growth = ch4_agage[1:] - ch4_agage[:-1]
     else: print 'Select a valid dataset: NOAA or AGAGE!'
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
+    ax1.grid(True)
     plt.locator_params(axis='y',nbins=6)
     #ax1.set_title(plottit+'\n\n The correlation between the OH and the CH4 growth rate')
     ax1.set_xlabel('CH4 growth rate (ppb/yr)')
@@ -189,7 +190,7 @@ def fig_oh_v_ch4growth(xopts,labels,plottit,legtit=None,dataset='noaa',figname=N
         ohu = fohi*oh
         oh_mid = array([(ohu[j]+ohu[j-1])/2 for j in range(1,nt)])
         cor = round(np.corrcoef(ch4_growth,oh_mid)[0,1],2)
-        ax1.plot(ch4_growth, oh_mid/1e6, 'o',color=sim_blu[i+1], label=labels[i]+'(r='+str(cor)+')')
+        ax1.plot(ch4_growth, oh_mid/1e6, 'o',color=dif_col[i+1], label=labels[i]+'(r='+str(cor)+')')
     ax1.set_xlim([min(ch4_growth)-1,max(ch4_growth)+1])
     ax1.set_ylim([0.86,0.91])
     #lgd=ax1.legend(bbox_to_anchor=(1.35,1.),title=legtit)
@@ -197,7 +198,7 @@ def fig_oh_v_ch4growth(xopts,labels,plottit,legtit=None,dataset='noaa',figname=N
     if figname==None: figname='default'
     plt.savefig(figloc+'\\'+figname,bbox_extra_artists=(lgd,), bbox_inches='tight')
     
-def lifetime_plot(xopts,labels,plottit,legtit=None ,figname=None):
+def fig_lifetime(xopts,labels,plottit,legtit=None ,figname=None):
     '''
     Plot of MCF and CH4 lifetimes against OH and the total lifetime.
     '''
@@ -209,7 +210,7 @@ def lifetime_plot(xopts,labels,plottit,legtit=None ,figname=None):
     ax1.set_xlabel('Year')
     ax1.set_ylabel('Lifetime (years)')
     ax2.set_ylabel('Lifetime (years)')
-    for xopt in xopts:
+    for i,xopt in enumerate(xopts):
         _,_,_,fohi,_,_,_,_,_ = unpack(xopt)
         loh = fohi*l_mcf_oh
         tau_mcf_oh = 1/loh
@@ -217,10 +218,14 @@ def lifetime_plot(xopts,labels,plottit,legtit=None ,figname=None):
         loh = fohi*l_ch4_oh
         tau_ch4_oh = 1/loh
         tau_ch4_tot = 1/(loh+l_ch4_other)
-        ax1.plot(yrs, tau_mcf_oh, 'o')
-        ax1.plot(yrs, tau_mcf_tot, 'v')
-        ax2.plot(yrs, tau_ch4_oh, 'o')
-        ax2.plot(yrs, tau_ch4_tot, 'v')
+        ax1.plot(yrs, tau_mcf_oh, 'o', label='lifetime oh: '+labels[i])
+        ax1.plot(yrs, tau_mcf_tot, 'v', label='lifetime tot: '+labels[i])
+        ax2.plot(yrs, tau_ch4_oh, 'o', label='lifetime oh: '+labels[i])
+        ax2.plot(yrs, tau_ch4_tot, 'v', label='lifetime tot: '+labels[i])
+    lgd=ax1.legend(bbox_to_anchor=(1.32,1.),title=legtit)
+    fig.tight_layout()
+    if figname==None: figname='default'
+    plt.savefig(figloc+'\\'+figname,bbox_extra_artists=(lgd,), bbox_inches='tight')
         
 def cor_calc(x_opt,dataset='noaa'):
     '''
@@ -310,8 +315,8 @@ fig.tight_layout()
 plt.savefig(figloc+'\\'+'ch4_corlens',bbox_extra_artists=(lgd,), bbox_inches='tight')
 
 # What happens if I don't optimize one of the 3
-x_normal = read_x('normal', 'noaa')
-x_noch4 = read_x('offch4', 'noaa')
+x_normal = read_x('normal2', 'noaa')
+x_noch4 = read_x('noch4', 'noaa')
 x_nomcf = read_x('offmcf', 'noaa')
 x_nooh = read_x('offoh', 'noaa')
 x_onoff = [x_normal, x_noch4, x_nomcf, x_nooh]
@@ -376,33 +381,31 @@ lab_cor2 = ['NOAA','AGAGE']
 title_cor2 = 'Difference between NOAA and AGAGE'
 fig_oh_v_ch4growth(x_cor2,lab_cor2,title_cor2,figname=name_cor2)
 
+# d13C not optimized
+x_no13c = read_x('nod13c','noaa')
+x_no13coh = read_x('nod13coh','noaa')
+lab_no13c = ['no d13C', 'also no OH']
+name_no13c = 'nod13C_reldev.png'
+name_no13c2 = 'nod13C_obs.png'
+leg_no13c = ''
+tit_no13c = 'The effect of optimizing all but d13C'
+fig_reldev([x_no13c,x_no13coh],lab_no13c,tit_no13c,legtit=leg_no13c,figname=name_no13c)
+fig_all_obs([x_no13c,x_no13coh], lab_no13c, tit_no13c, dataset='noaa',figname=name_no13c2)
 
 
-
-
-fig_oh_v_ch4growth([x_noaa,x_noch4],['',''],'')
 
 
 # Default normal obs plot
 fig_all_obs([x_noaa],['NOAA'],'',dataset='noaa',figname='standard_obs_plot.png')
 fig_reldev([x_noaa],['NOAA'],'',figname='standard_reldev')
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Correlation plots
+fig_oh_v_ch4growth([x_noaa,x_noch4],['',''],'')
 fig_oh_v_ch4growth([x_noaa],['NOAA'],'',figname='standard_growth_cor')
 fig_oh_v_ch4growth([x_noch4],[''],'',figname='noch4_growth_cor')
+
+# lifetime plots
+fig_lifetime([x_noaa],[' '],'',figname='lifetime_noaa')
 
 _,_,_,fohi,_,_,_,fch4i,_ = unpack(x_agag)
 ohu = fohi*oh
@@ -424,7 +427,6 @@ cor = round(np.corrcoef(ch4_growth,oh_mid)[0,1],2)
 
 
 
-fig_reldev
 
 
 
