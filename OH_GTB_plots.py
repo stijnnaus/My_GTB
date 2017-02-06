@@ -185,7 +185,7 @@ def lifetime_plot(xopts,labels,plottit,legtit=None ,figname=None):
     '''
     Plot of MCF and CH4 lifetimes against OH and the total lifetime.
     '''
-    fig = plt.figure()
+    fig = plt.figure(figsize=(10,20))
     ax1 = fig.add_subplot(211)
     ax2 = fig.add_subplot(212)
     ax1.set_title(plottit+'\n\n The lifetime of MCF against OH and in total')
@@ -193,7 +193,7 @@ def lifetime_plot(xopts,labels,plottit,legtit=None ,figname=None):
     ax1.set_xlabel('Year')
     ax1.set_ylabel('Lifetime (years)')
     ax2.set_ylabel('Lifetime (years)')
-    for xopt in xopts:
+    for i,xopt in enumerate(xopts):
         _,_,_,fohi,_,_,_,_,_ = unpack(xopt)
         loh = fohi*l_mcf_oh
         tau_mcf_oh = 1/loh
@@ -201,12 +201,16 @@ def lifetime_plot(xopts,labels,plottit,legtit=None ,figname=None):
         loh = fohi*l_ch4_oh
         tau_ch4_oh = 1/loh
         tau_ch4_tot = 1/(loh+l_ch4_other)
-        ax1.plot(yrs, tau_mcf_oh, 'o')
-        ax1.plot(yrs, tau_mcf_tot, 'v')
-        ax2.plot(yrs, tau_ch4_oh, 'o')
-        ax2.plot(yrs, tau_ch4_tot, 'v')
-        
-dif_col = ['blue','maroon','steelblue','pink','black','cyan'] # Very different colors
+        ax1.plot(yrs, tau_mcf_oh, 'o',color=dif_col[i],label=labels[i]+' v OH')
+        ax1.plot(yrs, tau_mcf_tot, 'v',color=dif_col[-i],label=labels[i]+' total')
+        ax2.plot(yrs, tau_ch4_oh, 'o',color=dif_col[i],label=labels[i]+' v OH')
+        ax2.plot(yrs, tau_ch4_tot, 'v',color=dif_col[-i],label=labels[i]+' total')
+    ax1.legend(loc='best')
+    plt.tight_layout()
+    if figname == None: figname='default'
+    plt.savefig(figname)
+    
+dif_col = ['blue','maroon','steelblue','pink','black','cyan','red','firebrick'] # Very different colors
 sim_blu = ['black','navy','blue','steelblue','lightsteelblue'] # Similar colors, going from dark to light
 sim_red = ['maroon', 'firebrick','red','lightcoral', 'yellow']
 figloc = os.path.join(os.getcwd(), 'Figures')
@@ -339,23 +343,166 @@ fig_oh_v_ch4growth(x_cor2,lab_cor2,title_cor2,figname=name_cor2)
 
 
 
-fig_oh_v_ch4growth([x_noaa,x_noch4],['',''],'')
-
+# Lifetime plots NOAA v AGAGE
+lifetime_plot([x_noaa,x_agag],['NOAA','AGAGE'],'The lifetime of MCF and CH4',figname='lifetime noaa v agage.png')
 
 # Default normal obs plot
 fig_all_obs([x_noaa],['NOAA'],'',dataset='noaa',figname='standard_obs_plot.png')
 
 
+# Methane growth rates
+Tg = 1e-9
+emcf_opt_noaa = em0_mcf+mcf_shiftx(x_noaa)
+emcf_opt_agag = em0_mcf+mcf_shiftx(x_agag)
+ch4_growth_noaa = ch4_noaa[1:]-ch4_noaa[:-1]
+ch4_growth_agag = ch4_agage[1:]-ch4_agage[:-1]
+mcf_growth_noaa = mcf_noaa[1:]-mcf_noaa[:-1]
+mcf_growth_agag = mcf_agage[1:]-mcf_agage[:-1]
+mcf_mid_noaa = .5* (mcf_noaa[1:]+mcf_noaa[:-1])
+mcf_mid_agag = .5* (mcf_agage[1:]+mcf_agage[:-1])
+_,_,_,foh_noaa,_,_,_,fch4_noaa,_ = unpack(x_noaa)
+_,_,_,foh_agag,_,_,_,fch4_agag,_ = unpack(x_agag)
+foh_mid_noaa = .5 * (foh_noaa[1:] + foh_noaa[:-1])
+foh_mid_agag = .5 * (foh_agag[1:] + foh_agag[:-1])
+ech4_mid_noaa = .5* (fch4_noaa[1:]+fch4_noaa[:-1]) * em0_ch4[0]
+ech4_mid_agag = .5* (fch4_agag[1:]+fch4_agag[:-1]) * em0_ch4[0]
+emcf_mid_noaa = .5* (emcf_opt_noaa[1:]+emcf_opt_noaa[:-1])
+emcf_mid_agag = .5* (emcf_opt_agag[1:]+emcf_opt_agag[:-1])
+
+cor_ch4_oh_noaa = round(np.corrcoef(ch4_growth_noaa,foh_mid_noaa)[0,1],2)
+cor_ch4_oh_agag = round(np.corrcoef(ch4_growth_agag,foh_mid_agag)[0,1],2)
+cor_mcf_oh_noaa = round(np.corrcoef(mcf_growth_noaa,foh_mid_noaa)[0,1],2)
+cor_mcf_oh_agag = round(np.corrcoef(mcf_growth_agag,foh_mid_agag)[0,1],2)
+cor_ch4_em_noaa = round(np.corrcoef(ch4_growth_noaa,ech4_mid_noaa)[0,1],2)
+cor_ch4_em_agag = round(np.corrcoef(ch4_growth_agag,ech4_mid_agag)[0,1],2)
+cor_mcf_em_noaa = round(np.corrcoef(mcf_growth_noaa,emcf_mid_noaa)[0,1],2)
+cor_mcf_em_agag = round(np.corrcoef(mcf_growth_agag,emcf_mid_agag)[0,1],2)
+cor_ch4em_oh_noaa = round(np.corrcoef(fch4_mid_noaa,foh_mid_noaa)[0,1],2)
+cor_ch4em_oh_agag = round(np.corrcoef(fch4_mid_agag,foh_mid_agag)[0,1],2)
 
 
+fig=plt.figure(figsize=(10,30))
+ax1=fig.add_subplot(311)
+ax2=fig.add_subplot(312)
+ax3=fig.add_subplot(313)
+ax1.set_title('Comparison of correlation CH4 growth rate with OH for NOAA v AGAGE\n\n CH4 growth rate')
+ax2.set_title('OH')
+ax1.set_ylabel(r'CH$_4$ growth rate (ppb/yr)')
+ax2.set_ylabel(r'OH (10$^6$ molec cm$^{-3}$')
+ax2.set_xlabel('Years')
+ax3.set_xlabel(r'OH (10$^6$ molec cm$^{-3}$')
+ax3.set_ylabel(r'CH$_4$ growth rate (ppb/yr)')
+ax1.grid(); ax2.grid()
+ax1.plot(years[1:],ch4_growth_noaa,'o-',color='steelblue',label='NOAA')
+ax1.plot(years[1:],ch4_growth_agag,'o-',color='maroon',label='AGAGE')
+ax2.plot(years[1:],foh_mid_noaa*oh*1e-6,'o-',color='steelblue',label='NOAA')
+ax2.plot(years[1:],foh_mid_agag*oh*1e-6,'o-',color='maroon',label='AGAGE')
+ax3.plot(foh_mid_noaa*oh*1e-6,ch4_growth_noaa,'o',color='steelblue',label='NOAA, r='+str(cor_ch4_oh_noaa))
+ax3.plot(foh_mid_agag*oh*1e-6,ch4_growth_agag,'o',color='maroon',label='AGAGE, r='+str(cor_ch4_oh_agag))
+ax1.legend(loc='best')
+ax3.legend(loc='best')
+plt.tight_layout()
+plt.savefig(figloce+'\\CH4 growth v OH')
+
+fig = plt.figure(figsize=(10,30))
+ax1=fig.add_subplot(311)
+ax2=fig.add_subplot(312)
+ax3=fig.add_subplot(313)
+ax1.set_title(r'CH$_4$ growth vs OH')
+ax2.set_title(r'CH$_4$ growth vs CH$_4$ emissions')
+ax3.set_title(r'CH$_4$ emissoins vs OH')
+ax1.set_ylabel(r'CH$_4$ growth rate (ppb/yr)')
+ax3.set_ylabel('MCF growth rate (%)')
+ax1.set_xlabel(r'OH (10$^6$ molec cm$^{-3})$')
+ax2.set_xlabel(r'CH$_4$ emissions (Tg/yr)')
+ax3.set_xlabel(r'OH (10$^6$ molec cm$^{-3}$)')
+ax1.grid();ax2.grid();ax3.grid()
+ax1.plot(foh_mid_noaa*oh*1e-6,ch4_growth_noaa,'o',color='steelblue',label='NOAA, r='+str(cor_ch4_oh_noaa))
+ax1.plot(foh_mid_agag*oh*1e-6,ch4_growth_agag,'o',color='maroon',label='AGAGE, r='+str(cor_ch4_oh_agag))
+ax2.plot(ech4_mid_noaa*Tg,ch4_growth_noaa,'o',color='steelblue',label='NOAA, r='+str(cor_ch4_em_noaa))
+ax2.plot(ech4_mid_agag*Tg,ch4_growth_agag,'o',color='maroon',label='AGAGE, r='+str(cor_ch4_em_agag))
+ax3.plot(ech4_mid_noaa*Tg,foh_mid_noaa*oh*1e-6,'o',color='steelblue',label='NOAA, r='+str(cor_ch4em_oh_noaa))
+ax3.plot(ech4_mid_agag*Tg,foh_mid_agag*oh*1e-6,'o',color='maroon',label='AGAGE, r='+str(cor_ch4em_oh_agag))
+
+ax1.legend(loc='best'); ax2.legend(loc='best'); ax3.legend(loc='best')
+plt.tight_layout()
+plt.savefig(figloce+'\\Correlation plots CH4.png')
 
 
+fig_oh_v_ch4growth([x_noaa],['noaa'],'Correlation OH with CH4 for noaa data',figname='OH_v_CH4growth_noaa.png',dataset='noaa')
+fig_oh_v_ch4growth([x_agag],['agage'],'Correlation OH with CH4 for noaa data',figname='OH_v_CH4growth_noaa.png',dataset='agage')
 
+# MCF emissions plot
+figloce = os.path.join(figloc,'Emissions')
+Gg = 1e-6 # conversion from kg to Gg
+mcfi,ch4i,d13ci,foh,fst,fsl,fme,fch4,r13e = unpack(x_noaa)
+emcf_opt = em0_mcf + mcf_shiftx(x_noaa)
+ydrop = styear-1951 # production years not included in the optimization
+rapids,mediums,slows,stocks = rapid[ydrop:],medium[ydrop:],slow[ydrop:],stock[ydrop:] # selected years
+rapido = (1 - fst-fsl-fme)*rapids # optmized production distribution
+mediumo = mediums + fme*rapids
+slowo = slows + fsl*rapids
+stocko =  stocks + fst*rapids
+drapid,dmedium,dslow,dstock = rapido-rapids,mediumo-mediums,slowo-slows,stocko-stocks
 
+plt.figure(figsize=(10,10))
+plt.title('The default MCF emissions (Mccullogh & Midgley 2001; Rigby et al. 2008)')
+plt.xlabel('Year')
+plt.ylabel('MCF prod/emi (Gg/yr)')
+plt.plot(years,em0_mcf*Gg,'ro-',label='Emissions')
+plt.plot(fyears,prod*Gg,'ko-',label='Production')
+plt.plot(fyears,rapid*Gg,'o-',color='c',label='Rapid production')
+plt.plot(fyears,medium*Gg,'o-',color='b',label='Medium production')
+plt.plot(fyears,slow*Gg,'o-',color='maroon',label='Slow production')
+plt.plot(fyears,stock*Gg,'o-',color='steelblue',label='Stockpiling')
+plt.legend(loc='best')
+plt.tight_layout()
+plt.savefig(figloce+'\\Base_mcf_emi.png')
 
+plt.figure(figsize=(10,10))
+plt.title('The relative contribution of each MCF production category over time')
+plt.xlabel('Year')
+plt.ylabel('Contribution (%)')
+plt.plot(fyears,rapid/prod,'co-',label='Rapid')
+plt.plot(fyears,medium/prod,'bo-',label='Medium')
+plt.plot(fyears,slow/prod,'o-',color='maroon',label='Slow')
+plt.plot(fyears,stock/prod,'o-',color='steelblue',label='Stock')
+plt.legend(loc='best')
+plt.tight_layout()
+plt.savefig(figloce+'\\Base_contrib_per_category.png')
 
+fig = plt.figure(figsize=(10,20))
+ax1=fig.add_subplot(211)
+ax2=fig.add_subplot(212)
+ax1.set_title('Change in each production category after optimization\n\n Absolute')
+ax2.set_title('Relative to prior')
+ax1.set_ylabel('Difference (Gg/yr)')
+ax2.set_ylabel('Difference (%)')
+ax2.set_xlabel('Years')
+ax1.plot(years,drapid*Gg,'o-',color='c',label='rapid')
+ax1.plot(years,dmedium*Gg,'o-',color='b',label='medium')
+ax1.plot(years,dslow*Gg,'o-',color='maroon',label='slow')
+ax1.plot(years,dstock*Gg,'o-',color='k',label='stock')
+ax2.plot(years,100*drapid/rapids,'o-',color='c')
+ax2.plot(years,100*dmedium/mediums,'o-',color='b')
+ax2.plot(years,100*dslow/slows,'o-',color='maroon')
+ax2.plot(years,100*dstock/stocks,'o-',color='k')
+ax1.legend(loc='best')
+plt.tight_layout()
+plt.savefig(figloce+'\\Opt_contrib_per_category.png')
 
-
+fig=plt.figure(figsize=(10,20))
+ax1=fig.add_subplot(211)
+ax2=fig.add_subplot(212)
+ax1.set_title('The difference between optimized and prior emissions\n\n Absolute')
+ax2.set_title('Relative to prior')
+ax1.set_ylabel('Difference (Gg/yr)')
+ax2.set_ylabel('Difference (%)')
+ax2.set_xlabel('Years')
+ax1.plot(years,(emcf_opt-em0_mcf)*Gg, 'o-', color='maroon',markersize=9,linewidth=1.8)
+ax2.plot(years,100*(emcf_opt-em0_mcf)/em0_mcf, 'o-', color='maroon',markersize=9,linewidth=1.8)
+plt.tight_layout()
+plt.savefig(figloce+'\\Emi_diff_opt_base.png')
 
 
 
