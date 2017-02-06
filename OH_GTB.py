@@ -31,7 +31,7 @@ def calculate_J(xp):
     J_tot = .5 * (J_pri+J_obs)
     #print 'Cost observations  :',J_obs*red
     #print 'Cost background    :',J_pri*red
-    print 'Cost function value:',J_tot*red
+    #print 'Cost function value:',J_tot*red
     return J_tot*red
     
 def calculate_dJdx(xp):
@@ -55,7 +55,7 @@ def calculate_dJdx(xp):
     dJdx_pri, _, _ = cost_bg(x)
     dJdx = dJdx_obs + dJdx_pri
     dJdxp = np.dot(L_adj, dJdx)
-    print 'Cost function deriv:',max(dJdxp)*red
+    #print 'Cost function deriv:',max(dJdxp)*red
     return dJdxp*red
     
 def cost_bg(x):
@@ -371,6 +371,7 @@ red = 1e-3
 save_fig = False # If true it save the figures that are produced
 write_data = True # If true writes opt results to output file
 
+
 # Constants
 dt = 1./nstep
 m = 5.e18
@@ -384,7 +385,7 @@ conv_c13 = xc13 / 10**9  * m / xmair # kg/ppb
 l_mcf_ocean = 1./83.0  # loss rate yr-1
 l_mcf_strat = 1./45.0
 l_mcf_oh = (1.64e-12*exp(-1520.0/temp))*oh  # in s-1
-l_ch4_oh = (2.45e-12*exp(-1775.0/temp))*oh  
+l_ch4_oh = (2.45e-12*exp(-1775.0/temp))*oh
 l_mcf_oh *= 3600.*24.0*365.0  # in yr-1
 l_ch4_oh *= 3600.*24.0*365.0
 a_ch4_oh = 1 - 3.9/1000 # fractionation by OH
@@ -678,6 +679,33 @@ mcfff = mcf_obs # For use in data_plots
 chhh4 = ch4_obs # For use in data_plots
 
 
+Tt = np.linspace(272,274)
+kmcf0 = 1.64e-12*exp(-1520.0/temp)
+kmcf = 1.64e-12*exp(-1520.0/Tt)
+kch40 = 2.45e-12*exp(-1775.0/temp)
+kch4 = 2.45e-12*exp(-1775.0/Tt)
+kch4r = kch4/kch40-1
+ratio0 = kmcf/kch40
+ratio = kmcf/kch4
+#plt.figure()
+#plt.xlabel('Temperature')
+#plt.ylabel('Change in kmcf/kch4 (%)')
+#plt.title('The effect that a systematic bias in T will have on the ratio\n\
+#             between the reaction constant with OH of MCF and CH4, relative\n\
+#             to the T=272K basecase')
+#plt.plot(Tt,100*(ratio/ratio0-1), 'r-')
+#plt.grid()
+#plt.tight_layout()
+#plt.savefig('temp_effect_kch4_kmcf.png')
+plt.figure()
+plt.plot(Tt-temp,100*(kmcf/kmcf0-1), 'b-')
+plt.grid()
+plt.title('The effect that an increase in T over time will have on\n\
+            the MCF reaction rate, relative to the T=272K basecase')
+plt.xlabel('Temperature change')
+plt.ylabel('Change in kmcf (%)')
+plt.tight_layout()
+plt.savefig('temp_effect_kmcf.png')
 
 
 
