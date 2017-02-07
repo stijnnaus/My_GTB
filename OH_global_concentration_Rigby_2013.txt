@@ -1,5 +1,5 @@
-Rigby et al. 2013 Re-evaluation of the lifetimes of the major CFCs and CH3CCl3 using atmospheric trends		
-Decimal date (year)	 Mass-weighted global OH concentration (10^-5 molecules/cm^3)	" 1-sigma uncertainty, excluding emissions uncertainty (10^-5 molecules/cm^3)"
+# Rigby et al. 2013 Re-evaluation of the lifetimes of the major CFCs and CH3CCl3 using atmospheric trends		
+# Decimal date (year)	 Mass-weighted global OH concentration (10^-5 molecules/cm^3)	" 1-sigma uncertainty, excluding emissions uncertainty (10^-5 molecules/cm^3)"
 1980.58	11.7	1.1
 1980.67	11.81	1.1
 1980.75	11.97	1.12

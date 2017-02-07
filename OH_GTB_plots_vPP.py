@@ -92,7 +92,7 @@ def fig_reldev(xopts,labels,plottit,legtit=None,figname=None):
         ax2.plot(yrs, 100*mcfdev, 'o-', color=dif_col[i], label=labels[i])
         ax3.plot(yrs, 100*(fch4[i]-1), 'o-', color=dif_col[i], label=labels[i])
         ax4.plot(yrs, d13c[i]-em0_d13c, 'o-', color=dif_col[i], label=labels[i])
-    lgd=ax2.legend(bbox_to_anchor=(1.32,1.),title=legtit)
+    lgd=ax2.legend(bbox_to_anchor=(1.45,1.),title=legtit)
     fig.tight_layout()
     if figname==None: figname='default'
     plt.savefig(figloc+'\\'+figname,bbox_extra_artists=(lgd,), bbox_inches='tight')
@@ -218,11 +218,11 @@ def fig_lifetime(xopts,labels,plottit,legtit=None ,figname=None):
         loh = fohi*l_ch4_oh
         tau_ch4_oh = 1/loh
         tau_ch4_tot = 1/(loh+l_ch4_other)
-        ax1.plot(yrs, tau_mcf_oh, 'o', label='lifetime oh: '+labels[i])
-        ax1.plot(yrs, tau_mcf_tot, 'v', label='lifetime tot: '+labels[i])
-        ax2.plot(yrs, tau_ch4_oh, 'o', label='lifetime oh: '+labels[i])
-        ax2.plot(yrs, tau_ch4_tot, 'v', label='lifetime tot: '+labels[i])
-    lgd=ax1.legend(bbox_to_anchor=(1.32,1.),title=legtit)
+        ax1.plot(yrs, tau_mcf_oh, 'o', label='vs oh '+labels[i])
+        ax1.plot(yrs, tau_mcf_tot, 'v', label='tot '+labels[i])
+        ax2.plot(yrs, tau_ch4_oh, 'o', label='vs oh '+labels[i])
+        ax2.plot(yrs, tau_ch4_tot, 'v', label='tot '+labels[i])
+    lgd=ax1.legend(bbox_to_anchor=(1.4,1.),title=legtit)
     fig.tight_layout()
     if figname==None: figname='default'
     plt.savefig(figloc+'\\'+figname,bbox_extra_artists=(lgd,), bbox_inches='tight')
@@ -393,6 +393,10 @@ fig_reldev([x_no13c,x_no13coh],lab_no13c,tit_no13c,legtit=leg_no13c,figname=name
 fig_all_obs([x_no13c,x_no13coh], lab_no13c, tit_no13c, dataset='noaa',figname=name_no13c2)
 
 
+# Fitting OH to CH4 or MCF
+x_ohtomcf = read_x('nomcfem','noaa')
+x_ohtoch4 = read_x('noch4em','noaa')
+fig_reldev([x_noaa,x_ohtomcf,x_ohtoch4], ['Normal','Match MCF',r'Match CH$_4$'],'',figname='OH_tomatch_MCF_CH4.png')
 
 
 # Default normal obs plot

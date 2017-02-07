@@ -339,7 +339,11 @@ lab_cor2 = ['NOAA','AGAGE']
 title_cor2 = 'Difference between NOAA and AGAGE'
 fig_oh_v_ch4growth(x_cor2,lab_cor2,title_cor2,figname=name_cor2)
 
-
+# Overfitting
+x_overn = read_x('overfit','noaa')
+x_overa = read_x('overfit','agage')
+labels = ['Overfit noaa', 'Overfit agage']
+fig_reldev([x_overn,x_overa],labels,'',figname='Overfitting.png')
 
 
 
@@ -352,6 +356,7 @@ fig_all_obs([x_noaa],['NOAA'],'',dataset='noaa',figname='standard_obs_plot.png')
 
 # Methane growth rates
 Tg = 1e-9
+figloce = figloc+'\\Emissions'
 emcf_opt_noaa = em0_mcf+mcf_shiftx(x_noaa)
 emcf_opt_agag = em0_mcf+mcf_shiftx(x_agag)
 ch4_growth_noaa = ch4_noaa[1:]-ch4_noaa[:-1]
@@ -377,8 +382,8 @@ cor_ch4_em_noaa = round(np.corrcoef(ch4_growth_noaa,ech4_mid_noaa)[0,1],2)
 cor_ch4_em_agag = round(np.corrcoef(ch4_growth_agag,ech4_mid_agag)[0,1],2)
 cor_mcf_em_noaa = round(np.corrcoef(mcf_growth_noaa,emcf_mid_noaa)[0,1],2)
 cor_mcf_em_agag = round(np.corrcoef(mcf_growth_agag,emcf_mid_agag)[0,1],2)
-cor_ch4em_oh_noaa = round(np.corrcoef(fch4_mid_noaa,foh_mid_noaa)[0,1],2)
-cor_ch4em_oh_agag = round(np.corrcoef(fch4_mid_agag,foh_mid_agag)[0,1],2)
+cor_ch4em_oh_noaa = round(np.corrcoef(ech4_mid_noaa,foh_mid_noaa)[0,1],2)
+cor_ch4em_oh_agag = round(np.corrcoef(ech4_mid_agag,foh_mid_agag)[0,1],2)
 
 
 fig=plt.figure(figsize=(10,30))
@@ -471,7 +476,7 @@ plt.legend(loc='best')
 plt.tight_layout()
 plt.savefig(figloce+'\\Base_contrib_per_category.png')
 
-fig = plt.figure(figsize=(10,20))
+fig = plt.figure(figsize=(10,8))
 ax1=fig.add_subplot(211)
 ax2=fig.add_subplot(212)
 ax1.set_title('Change in each production category after optimization\n\n Absolute')
@@ -487,18 +492,20 @@ ax2.plot(years,100*drapid/rapids,'o-',color='c')
 ax2.plot(years,100*dmedium/mediums,'o-',color='b')
 ax2.plot(years,100*dslow/slows,'o-',color='maroon')
 ax2.plot(years,100*dstock/stocks,'o-',color='k')
-ax1.legend(loc='best')
+#ax1.legend(loc='best')
 plt.tight_layout()
 plt.savefig(figloce+'\\Opt_contrib_per_category.png')
 
-fig=plt.figure(figsize=(10,20))
+fig=plt.figure(figsize=(9,7))
 ax1=fig.add_subplot(211)
 ax2=fig.add_subplot(212)
-ax1.set_title('The difference between optimized and prior emissions\n\n Absolute')
-ax2.set_title('Relative to prior')
+#ax1.set_title('The difference between optimized and prior emissions\n\n Absolute')
+#ax2.set_title('Relative to prior')
 ax1.set_ylabel('Difference (Gg/yr)')
 ax2.set_ylabel('Difference (%)')
 ax2.set_xlabel('Years')
+ax1.grid()
+ax2.grid()
 ax1.plot(years,(emcf_opt-em0_mcf)*Gg, 'o-', color='maroon',markersize=9,linewidth=1.8)
 ax2.plot(years,100*(emcf_opt-em0_mcf)/em0_mcf, 'o-', color='maroon',markersize=9,linewidth=1.8)
 plt.tight_layout()
@@ -506,24 +513,95 @@ plt.savefig(figloce+'\\Emi_diff_opt_base.png')
 
 
 
+# Comparing my results to Rigby and Montzka
+
+_,_,_,oh_noaa,_,_,_,_,_ = unpack(x_noaa)
+_,_,_,oh_agag,_,_,_,_,_ = unpack(x_agag)
+oh_rigby = read_glob_mean('OH_global_concentration_Rigby_2013.txt', 1992,2010, errors=True)
+yr_rigby = [np.mean(oh_rigby[0][12*i:12*(i+1)]) for i in range(18)]
+oh_rigbym = [np.mean(oh_rigby[1][12*i:12*(i+1)]) for i in range(18)]
 
 
+fig = plt.figure(figsize=(8,8))
+ax1 = fig.add_subplot(211)
+#ax1.plot(oh_rigby[0],100*(oh_rigby[1]-max(oh_rigby[1]))/max(oh_rigby[1]), 'r--', label='AGAGE from Rigby (2013)')
+ax1.plot(yr_rigby,100*(oh_rigbym-np.mean(oh_rigbym))/np.mean(oh_rigbym), 'r-', label='From Rigby (2013)',linewidth=4.0)
+ax1.plot(years, 100*(oh_agag-np.mean(oh_agag))/np.mean(oh_agag), 'b-', label='Derived by me',linewidth=4.0)
+ax1.legend(); 
+ax1.grid()
+ax1.set_ylabel('OH anomaly (%)')
+ax2 = fig.add_subplot(212)
+#ax1.plot(oh_rigby[0],100*(oh_rigby[1]-max(oh_rigby[1]))/max(oh_rigby[1]), 'r--', label='AGAGE from Rigby (2013)')
+ax2.plot(yr_rigby,1000+(oh_rigbym-max(oh_rigbym))/max(oh_rigbym), 'r-', label='From Montzka (2011)',linewidth=6.0)
+ax2.plot(years, 100*(oh_noaa-np.mean(oh_noaa))/np.mean(oh_noaa), 'b-', label='Derived by me',linewidth=6.0)
+ax2.set_ylim([-6,8])
+ax2.set_ylabel('OH anomaly (%)')
+ax2.legend(loc='best')
+ax2.grid()
+plt.tight_layout()
+plt.savefig(figloc+'\\OH_literature.png')
 
+# loss by OH
+ch4_noaa,_,_ = forward_ch4(x_noaa)
+_,_,_,foh_noaa,_,_,_,_,_ = unpack(x_noaa)
+loh_noaa = foh_noaa * l_ch4_oh * ch4_noaa
+fig = plt.figure()
+ax1 = fig.add_subplot(211)
+ax2 = ax1.twinx()
+ax1.plot(years,loh_noaa,'bo-')
+ax2.plot(array(years[1:])-.5,ch4_growth_noaa,'go-')
+ax2.plot(array(years[1:])-.5,ch4_noaa[1:]-ch4_noaa[:-1],'go--')
 
+# d13C in emissions
 
+_,_,_,_,_,_,_,fch4_noaa,r13e_noaa = unpack(x_noaa)
+_,_,_,_,_,_,_,fch4_agag,r13e_agag = unpack(x_agag)
+d13e_noaa = r13_to_d13c(r13e_noaa)
+d13e_agag = r13_to_d13c(r13e_agag)
+fig = plt.figure(figsize=(8,6))
+ax1 = fig.add_subplot(111)
+ax1.set_ylabel(d13c_lab)
+ax1.plot(years,d13e_noaa,'o-',color='steelblue',label='NOAA')
+ax1.plot(years,d13e_agag,'o-',color='maroon',label='AGAGE')
+ax1.legend(loc='best')
+plt.tight_layout()
+plt.savefig(figloc+'d13ce_noaa_agage.png')
 
+bmb = 45e9 # BMB emissions
+ech4 = fch4_agag*em0_ch4
+sig_bmb = -22
+sig_bio = -62
+sig_fof = -44
+E_bio = (ech4*(d13e_noaa-sig_fof) + bmb*(sig_fof-sig_bmb)) / (sig_bio-sig_fof)
+E_fof = (ech4*(d13e_noaa-sig_bio) + bmb*(sig_bio-sig_bmb)) / (sig_fof-sig_bio)
+print 'bmb',min(bmb/ech4),max(bmb/ech4)
+print 'E_bio:',min(E_bio/ech4),max(E_bio/ech4)
+print 'E_fof:',min(E_fof/ech4),max(E_fof/ech4)
 
+fig = plt.figure(figsize=(10,6))
+ax1 = fig.add_subplot(211)
+ax2 = fig.add_subplot(212)
+ax3 = ax2.twinx()
+ax1.set_ylabel(d13c_lab)
+ax1.plot(years,d13e_noaa,'o-',color='steelblue',label='NOAA')
+ax1.plot(years,d13e_agag,'o-',color='maroon',label='AGAGE')
+ax2.set_ylabel('Biogenic (%)',color='green')
+ax3.set_ylabel('Fossil fuel (%)',color='black')
+ax2.plot(years,E_bio,'go-',label='Biogenic')
+ax3.plot(years,E_fof,'ko-',label='Fossil fuel')
+ax1.legend(loc='best')
+ax2.legend(loc='lower center')
+ax3.legend(loc='upper center')
+plt.tight_layout()
+plt.savefig(figloc+'\\CH4_source_comp.png')
 
+x_noaa_ch = x_noaa[:]
+r133 = d13c_to_r13([-53.5])
+x_noaa_ch[-nt:] = array(r133*nt)
+ch44,r13_ch4,_ = forward_ch4(x_noaa_ch)
+d13cc = r13_to_d13c(r13_ch4)
 
-
-
-
-
-
-
-
-
-
+plt.plot(d13cc,'ro')
 
 
 

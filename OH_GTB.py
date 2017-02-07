@@ -232,7 +232,7 @@ def forward_mcf(x,lt=False):
     if lt==True: return obs_oper_av(mcfs),tau_oh,tau
     return obs_oper_av(mcfs)
 
-def forward_ch4(x):
+def forward_ch4(x,lossoh=False):
     _, ch4i, r13i, foh, _, _, _, fch4, r13e = unpack(x)
     ch4s, c13s = np.zeros((nt,nstep)), np.zeros((nt,nstep))
     # Initialization
@@ -253,6 +253,7 @@ def forward_ch4(x):
             c13s[i][n] = c13
     ch4s_av, c13s_av = obs_oper_av(ch4s), obs_oper_av(c13s)
     ch4s_n, r13s_n = obs_oper_ch4(ch4s_av, c13s_av)
+    if lossoh: return ch4s_n, r13s_n, c13s_av, loh
     return ch4s_n, r13s_n, c13s_av
 
 def mcf_shiftx(x):
@@ -361,7 +362,7 @@ def unpack(x):
 
 # Tuneable parameters
 dataset = 'noaa'
-exp_name = 'normal2'+'_'+dataset
+exp_name = 'normal'+'_'+dataset
 header_p1 = '#\n'
 nstep = 400
 temp = 272.0  # Kelvin        
