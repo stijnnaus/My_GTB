@@ -349,9 +349,17 @@ fig_all_obs([x_noaa],['NOAA'],'',dataset='noaa',figname='standard_obs_plot.png')
 
 
 
+_,_,_,oh_noaa,_,_,_,_,_ = unpack(x_noaa)
+_,_,_,oh_agag,_,_,_,_,_ = unpack(x_agag)
+oh_rigby = read_glob_mean('OH_global_concentration_Rigby_2013.txt', 1989,2010, errors=True)
 
-
-
+fig = plt.figure()
+ax1 = fig.add_subplot(111)
+ax2 = ax1.twinx()
+ax1.plot(years, oh_noaa, 'b-', label = 'NOAA derived by me')
+ax2.plot(oh_rigby[0],oh_rigby[1], 'r--', label='AGAGE from Rigby (2013)')
+ax1.plot(years, oh_agag, 'r-', label='AGAGE derived by me')
+plt.legend(loc='best')
 
 
 
