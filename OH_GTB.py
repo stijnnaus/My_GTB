@@ -154,7 +154,7 @@ def forward_tl_mcf(x, foh, mcf_save):
     dmcfs = np.zeros((nt,nstep))
     dmcfi = dmcf0
     rapidc = rapid/conv_mcf
-    for year in range(styear,edyear):
+    for year in years:
         i  = year - styear
         ie = year - 1951
         # Calculate emission shift from fstock ...
@@ -192,7 +192,7 @@ def forward_tl_ch4(x, ch4i_sv, r13i_sv, foh_sv, fch4_sv, r13e_sv, ch4sv, c13sv):
     em_ch4 = fch4_sv * em0_ch4p
     dem_ch4 = dfch4 * em0_ch4p
     dem_c13 = em_ch4*dr13e + dem_ch4*r13e_sv
-    for year in range(styear,edyear):
+    for year in years:
         i = year - styear
         for n in range(nstep):
             dch4 += dem_ch4[i]
@@ -222,7 +222,7 @@ def forward_mcf(x,lt=False):
     em /= conv_mcf
     mcfs = np.zeros((nt,nstep))
     mcf = mcf0
-    for year in range(styear,edyear):
+    for year in years:
         i = year - styear
         emf = em[i]*dt
         for n in range(nstep):
@@ -232,7 +232,7 @@ def forward_mcf(x,lt=False):
     if lt==True: return obs_oper_av(mcfs),tau_oh,tau
     return obs_oper_av(mcfs)
 
-def forward_ch4(x):
+def forward_ch4(x,lossoh=False):
     _, ch4i, r13i, foh, _, _, _, fch4, r13e = unpack(x)
     ch4s, c13s = np.zeros((nt,nstep)), np.zeros((nt,nstep))
     # Initialization
@@ -241,7 +241,7 @@ def forward_ch4(x):
     # Emissions
     em_ch4 = fch4 * (em0_ch4 / conv_ch4) * dt
     em_c13 = r13e * em_ch4
-    for year in range(styear,edyear):
+    for year in years:
         i = year - styear
         for n in range(nstep):
             ch4 += em_ch4[i]
@@ -253,6 +253,7 @@ def forward_ch4(x):
             c13s[i][n] = c13
     ch4s_av, c13s_av = obs_oper_av(ch4s), obs_oper_av(c13s)
     ch4s_n, r13s_n = obs_oper_ch4(ch4s_av, c13s_av)
+    if lossoh: return ch4s_n, r13s_n, c13s_av, loh
     return ch4s_n, r13s_n, c13s_av
 
 def mcf_shiftx(x):
@@ -266,7 +267,7 @@ def mcf_shift(fst, fsl, fme):
     fsl: the fraction of rapid emissions that is instead moved to slow emissions
     ''' 
     shifts = []
-    for year in range(styear,edyear):
+    for year in years:
         i = year - styear # Index in fsl and fst
         ie = year - 1951  # Index in emissions
         # Stock
@@ -361,12 +362,14 @@ def unpack(x):
 
 # Tuneable parameters
 dataset = 'noaa'
-exp_name = 'normal2'+'_'+dataset
+exp_name = 'normal'+'_'+dataset
 header_p1 = '#\n'
 nstep = 400
 temp = 272.0  # Kelvin        
 oh = .9*1e6  # molecules/cm3
 styear,edyear = 1992,2015
+years = np.arange(styear,edyear)
+fyears = np.arange(1951,edyear) # years for which I have MCF production
 red = 1e-3
 save_fig = False # If true it save the figures that are produced
 write_data = True # If true writes opt results to output file
@@ -523,16 +526,16 @@ ax1b.set_ylabel('Cost function')
 ax2.set_ylabel(r'$\delta^{13}$C (permil)')
 ax2b.set_ylabel('Cost function')
 ax2.set_xlabel('Year')
-ax1.errorbar(range(styear,edyear),ch4_obs,yerr=ch4_obs_e,fmt = 'o',color = 'green',label=r'CH$_4$, observed' )
-ax1.plot( range(styear,edyear),ch4_pri,'r-',label=r'CH$_4$, prior')
-ax1.plot( range(styear,edyear),ch4_opt  ,'g-',label=r'CH$_4$, optimized')
-ax1b.plot(range(styear,edyear),J_ch4_pri, color = 'red')
-ax1b.plot(range(styear,edyear),J_ch4_opt, color = 'green')
-ax2.errorbar(range(styear,edyear),d13c_obs, yerr= d13c_obs_e  ,fmt = 'o',color = 'green',label=r'$\delta^{13}$C, observed')
-ax2.plot( range(styear,edyear),d13c_pri,'r--',label=r'$\delta^{13}$C, prior')
-ax2.plot( range(styear,edyear),d13c_opt  ,'g--',label=r'$\delta^{13}$C, optimized')
-ax2b.plot(range(styear,edyear),J_r13_pri, color = 'red')
-ax2b.plot(range(styear,edyear),J_r13_opt, color = 'green')
+ax1.errorbar(years,ch4_obs,yerr=ch4_obs_e,fmt = 'o',color = 'green',label=r'CH$_4$, observed' )
+ax1.plot( years,ch4_pri,'r-',label=r'CH$_4$, prior')
+ax1.plot( years,ch4_opt  ,'g-',label=r'CH$_4$, optimized')
+ax1b.plot(years,J_ch4_pri, color = 'red')
+ax1b.plot(years,J_ch4_opt, color = 'green')
+ax2.errorbar(years,d13c_obs, yerr= d13c_obs_e  ,fmt = 'o',color = 'green',label=r'$\delta^{13}$C, observed')
+ax2.plot( years,d13c_pri,'r--',label=r'$\delta^{13}$C, prior')
+ax2.plot( years,d13c_opt  ,'g--',label=r'$\delta^{13}$C, optimized')
+ax2b.plot(years,J_r13_pri, color = 'red')
+ax2b.plot(years,J_r13_opt, color = 'green')
 ax1.legend(loc='upper left')
 ax2.legend(loc='lower right')
 if save_fig:
@@ -545,11 +548,11 @@ ax1.set_xlabel('Year')
 ax1b.set_ylabel('Cost function')
 ax1.set_ylabel('mcf concentration (ppb)')
 ax1.set_title('mcf concentrations: both from observations\n and modelled forward from the prior.')
-ax1.errorbar(range(styear,edyear),mcf_obs, yerr = mcf_obs_e,fmt='o',color='gray',label = 'mcf observations')
-ax1.plot(range(styear,edyear),mcf_pri,'-',color='red', label = 'mcf prior')
-ax1.plot(range(styear,edyear),mcf_opt  ,'-',color='green', label = 'mcf optimized')
-ax1b.plot(range(styear,edyear),J_mcf_pri, color = 'red')
-ax1b.plot(range(styear,edyear),J_mcf_opt, color = 'green')
+ax1.errorbar(years,mcf_obs, yerr = mcf_obs_e,fmt='o',color='gray',label = 'mcf observations')
+ax1.plot(years,mcf_pri,'-',color='red', label = 'mcf prior')
+ax1.plot(years,mcf_opt  ,'-',color='green', label = 'mcf optimized')
+ax1b.plot(years,J_mcf_pri, color = 'red')
+ax1b.plot(years,J_mcf_opt, color = 'green')
 ax1.legend(loc='best')
 if save_fig:
     plt.savefig('MCF_concentrations_'+exp_name)
@@ -570,27 +573,27 @@ fig = plt.figure(figsize = (10,40))
 ax1 = fig.add_subplot(411)
 ax1.set_title('Prior and optimized global mean OH concentrations')
 ax1.set_ylabel('OH concentration \n'+r'($10^6$ molec cm$^{-3}$)')
-ax1.plot( range(styear,edyear), oh_pri, 'o-', color = 'red',   label = 'Prior'     )
-ax1.plot( range(styear,edyear), oh_opt  , 'o-', color = 'green', label = 'Optimized' )
+ax1.plot( years, oh_pri, 'o-', color = 'red',   label = 'Prior'     )
+ax1.plot( years, oh_opt  , 'o-', color = 'green', label = 'Optimized' )
 ax1.legend(loc='best')
 ax2 = fig.add_subplot(412)
 ax2.set_title('Prior and optimized global mean MCF emissions')
 ax2.set_ylabel('MCF emissions (Gg/yr)')
-ax2.plot( range(styear,edyear), emcf_pri/1.e6, 'o-', color = 'red',   label = 'Prior'     )
-ax2.plot( range(styear,edyear), emcf_opt/1.e6  , 'o-', color = 'green', label = 'Optimized' )
+ax2.plot( years, emcf_pri/1.e6, 'o-', color = 'red',   label = 'Prior'     )
+ax2.plot( years, emcf_opt/1.e6  , 'o-', color = 'green', label = 'Optimized' )
 ax2.legend(loc='best')
 ax3 = fig.add_subplot(413)
 ax3.set_title('Prior and optimized '+r'global mean CH$_4$ emissions')
 ax3.set_ylabel('CH$_4$ emissions (Tg/yr)')
-ax3.plot( range(styear,edyear), ech4_pri/1.e9, 'o-', color = 'red',   label = 'Prior'     )
-ax3.plot( range(styear,edyear), ech4_opt/1.e9  , 'o-', color = 'green', label = 'Optimized' )
+ax3.plot( years, ech4_pri/1.e9, 'o-', color = 'red',   label = 'Prior'     )
+ax3.plot( years, ech4_opt/1.e9  , 'o-', color = 'green', label = 'Optimized' )
 ax3.legend(loc='best')
 ax4 = fig.add_subplot(414)
 ax4.set_title(r'Prior and optimized $\delta^{13}$C global mean CH$_4$ emissions')
 ax4.set_xlabel('Year')
 ax4.set_ylabel('$\delta^{13}$C (permil)')
-ax4.plot( range(styear,edyear), ed13c_pri, 'o-', color = 'red',   label = 'Prior'     )
-ax4.plot( range(styear,edyear), ed13c_opt  , 'o-', color = 'green', label = 'Optimized' )
+ax4.plot( years, ed13c_pri, 'o-', color = 'red',   label = 'Prior'     )
+ax4.plot( years, ed13c_opt  , 'o-', color = 'green', label = 'Optimized' )
 ax4.legend(loc='best')
 if save_fig:
     plt.savefig('full_state_pri_opt_'+exp_name)
@@ -604,10 +607,10 @@ ax1.set_ylabel('Optimized MCF emi shift (Gg/yr)')
 ax2.set_ylabel('fslow deviation (%)')
 ax3.set_ylabel('fstock deviation (%)')
 ax3.set_xlabel('Year')
-ax1.plot( range(styear,edyear), mcf_shift(fst_opt, fsl_opt, fme_opt)/1e6, 'o-', color='red' )
-ax2.plot( range(styear,edyear), 100*(fsl_opt-fsl_pri)  , 'o-', color='green')
-ax3.plot( range(styear,edyear), 100*(fst_opt-fst_pri), 'o-', color='blue')
-ax4.plot( range(styear,edyear), 100*(fme_opt-fme_pri), 'o-', color='c')
+ax1.plot( years, mcf_shift(fst_opt, fsl_opt, fme_opt)/1e6, 'o-', color='red' )
+ax2.plot( years, 100*(fsl_opt-fsl_pri)  , 'o-', color='green')
+ax3.plot( years, 100*(fst_opt-fst_pri), 'o-', color='blue')
+ax4.plot( years, 100*(fme_opt-fme_pri), 'o-', color='c')
 if save_fig:
     plt.savefig('MCF_emissions_'+exp_name)
 
@@ -617,9 +620,9 @@ ax1 = fig.add_subplot(111)
 ax1.set_title('Relative deviations from prior')
 ax1.set_xlabel('Year')
 ax1.set_ylabel('Relative deviation (%)')
-ax1.plot( range(styear,edyear), 100.*(foh_opt - foh_pri), 'o-', color = 'blue', label = 'OH')
-ax1.plot( range(styear,edyear), 100.*mcf_dev, 'o-', color = 'green', label = 'MCF' )
-ax1.plot( range(styear,edyear), 100.*(fch4_opt - fch4_pri), 'o-', color = 'red', label = r'CH$_4$' )
+ax1.plot( years, 100.*(foh_opt - foh_pri), 'o-', color = 'blue', label = 'OH')
+ax1.plot( years, 100.*mcf_dev, 'o-', color = 'green', label = 'MCF' )
+ax1.plot( years, 100.*(fch4_opt - fch4_pri), 'o-', color = 'red', label = r'CH$_4$' )
 ax1.legend(loc='best')
 if save_fig:
     plt.savefig('rel_dev_from_prior_'+exp_name)
@@ -635,13 +638,13 @@ ax2.set_title('Observation part cost function')
 ax2.set_xlabel('Year')
 ax1.set_ylabel('Cost function')
 ax2.set_ylabel('Cost function')
-ax1.plot( range(styear,edyear), J_pri_foh, 'o-', color = 'blue', label = 'OH' )
-ax1.plot( range(styear,edyear), J_pri_fst+J_pri_fsl, 'o-', color = 'green', label = 'MCF emi' )
-ax1.plot( range(styear,edyear), J_pri_fch4, 'o-', color = 'red', label = r'CH$_4$ emi' )
-ax1.plot( range(styear,edyear), J_pri_r13e, 'o-', color = 'maroon', label = r'$\delta^{13}$C of emi' )
-ax2.plot( range(styear,edyear), J_mcf_opt, 'o-', color = 'green', label = 'MCF' )
-ax2.plot( range(styear,edyear), J_ch4_opt, 'o-', color = 'red', label = r'CH$_4$' )
-ax2.plot( range(styear,edyear), J_r13_opt, 'o-', color = 'maroon', label = r'$\delta^{13}$C' )
+ax1.plot( years, J_pri_foh, 'o-', color = 'blue', label = 'OH' )
+ax1.plot( years, J_pri_fst+J_pri_fsl, 'o-', color = 'green', label = 'MCF emi' )
+ax1.plot( years, J_pri_fch4, 'o-', color = 'red', label = r'CH$_4$ emi' )
+ax1.plot( years, J_pri_r13e, 'o-', color = 'maroon', label = r'$\delta^{13}$C of emi' )
+ax2.plot( years, J_mcf_opt, 'o-', color = 'green', label = 'MCF' )
+ax2.plot( years, J_ch4_opt, 'o-', color = 'red', label = r'CH$_4$' )
+ax2.plot( years, J_r13_opt, 'o-', color = 'maroon', label = r'$\delta^{13}$C' )
 ax1.legend(loc='best')
 ax2.legend(loc='best')
 if save_fig:

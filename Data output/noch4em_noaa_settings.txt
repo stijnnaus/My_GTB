@@ -3,7 +3,7 @@
 # Initial errors:
             MCF: 342225.000 ppt; CH4 74822500.000 ppb; d13C 0.000 permil
 # The other errors:
-            foh: 0.000; fst: 0.000; fsl: 0.000; fch4: 0.006; ed13c_e: 0.000 permil
+            foh: 0.000; fst: 0.022; fsl: 0.022; fch4: 0.000; ed13c_e: 0.000 permil
 # Correlation lengths:
             In OH: 1.00 yr; in CH4 emissions: 10.00 yr
 # Observation errors:

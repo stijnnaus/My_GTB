@@ -36,7 +36,7 @@ def read_mcf_emi(fil):
     stock = array(stock)*1e6
     prod = rapid+medium+slow+stock
     em0 = []
-    for year in range(styear,2008):
+    for year in range(styear,2009):
        # calculate this year's emissions:
        iyear = year-1951   # index in arrays rapid, medium, slow, stock
        # emissions independent of fe (factor for stockpiling):
@@ -55,14 +55,14 @@ def extend_mcf_emi(rapid,medium,slow,stock,em0,edyear):
     year after 2008 in all emission categories.
     '''
     rapidi,mediumi,slowi,stocki = rapid[-1],medium[-1],slow[-1],stock[-1]
-    for yr in range(2008,edyear):
+    for yr in range(2009,edyear):
         rapidi,mediumi,slowi,stocki = .8*rapidi, .8*mediumi, .8*slowi, .8*stocki
         rapid = np.append(rapid, rapidi)
         medium = np.append(medium, mediumi)
         slow = np.append(slow, slowi)
         stock = np.append(stock, stocki)
     prod = rapid+medium+slow+stock
-    for year in range(2008,edyear):
+    for year in range(2009,edyear):
        # calculate this year's emissions:
        iyear = year-1951   # index in arrays rapid, medium, slow, stock
        # emissions independent of fe (factor for stockpiling):
