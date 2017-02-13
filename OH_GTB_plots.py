@@ -68,16 +68,16 @@ def fig_reldev(xopts,labels,plottit,legtit=None,figname=None):
     nexp = len(xopts)
     _,_,_,foh,fst,fsl,fme,fch4,r13e = combine_xopts(xopts)
     d13c = r13_to_d13c(r13e)
-    fig = plt.figure(figsize=(10,100))
+    fig = plt.figure(figsize=(9,200))
     ax1 = fig.add_subplot(411); ax2 = fig.add_subplot(412)
     ax3 = fig.add_subplot(413); ax4 = fig.add_subplot(414)
     ax1.grid(True); ax2.grid(True); ax3.grid(True); ax4.grid(True)
     ax1.set_title(plottit+'\n\nRelative deviations in OH')
     ax2.set_title('Relative deviations in MCF emissions')
-    ax3.set_title('Relative deviations in CH4 emissions')
+    ax3.set_title(r'Relative deviations in CH$_4$ emissions')
     ax4.set_title('Relative deviations in '+r'$\delta^{13}$C of CH$_4$ emissions')
     ax1.set_ylabel('Deviation (%)'); ax2.set_ylabel('Deviation (%)')
-    ax3.set_ylabel('Deviation (%)'); ax4.set_ylabel('Deviation (%)')
+    ax3.set_ylabel('Deviation (%)'); ax4.set_ylabel('Difference (permil)')
     ax4.set_xlabel('Year')
     for i in range(nexp):
         mcfdev = mcf_shift(fst[i],fsl[i],fme[i])/em0_mcf
@@ -85,7 +85,29 @@ def fig_reldev(xopts,labels,plottit,legtit=None,figname=None):
         ax2.plot(yrs, 100*mcfdev, 'o-', color=dif_col[i], label=labels[i])
         ax3.plot(yrs, 100*(fch4[i]-1), 'o-', color=dif_col[i], label=labels[i])
         ax4.plot(yrs, d13c[i]-em0_d13c, 'o-', color=dif_col[i], label=labels[i])
+<<<<<<< HEAD
     lgd=ax2.legend(bbox_to_anchor=(1.22,1.),title=legtit)
+=======
+    lgd=ax2.legend(bbox_to_anchor=(1.36,1.),title=legtit)
+    fig.tight_layout()
+    if figname==None: figname='default'
+    plt.savefig(figloc+'\\'+figname,bbox_extra_artists=(lgd,), bbox_inches='tight')
+    
+def fig_ohch4_reldev(xopts,labels,plottit,legtit=None ,figname=None):
+    ''' Plots deviations relative to prior in OH & CH4 emissions only. '''
+    nexp = len(xopts)
+    _,_,_,foh,_,_,_,fch4,_ = combine_xopts(xopts)
+    fig = plt.figure(figsize=(9,200))
+    ax1 = fig.add_subplot(211); ax2 = fig.add_subplot(212)
+    ax1.grid(True); ax2.grid(True)
+    ax1.set_title(plottit+'\n\nRelative deviations in OH')
+    ax2.set_title(r'Relative deviations in CH$_4$ emissions')
+    ax1.set_ylabel('Deviation (%)'); ax2.set_ylabel('Deviation (%)')
+    for i in range(nexp):
+        ax1.plot(yrs, 100*(foh[i]-1), 'o-', color=dif_col[i], label=labels[i])
+        ax2.plot(yrs, 100*(fch4[i]-1), 'o-', color=dif_col[i], label=labels[i])
+    lgd=ax2.legend(bbox_to_anchor=(1.36,1.),title=legtit)
+>>>>>>> origin/master
     fig.tight_layout()
     if figname==None: figname='default'
     plt.savefig(figloc+'\\'+figname,bbox_extra_artists=(lgd,), bbox_inches='tight')
@@ -208,7 +230,12 @@ def lifetime_plot(xopts,labels,plottit,legtit=None ,figname=None):
     ax1.legend(loc='best')
     plt.tight_layout()
     if figname == None: figname='default'
-    plt.savefig(figname)
+    plt.savefig(figloc+'\\'+figname)
+    
+def mid(arr):
+    '''Returns the linearly interpolated values between array values '''
+    return (arr[1:]+arr[:-1])/2.
+    
     
 def mid(arr):
     '''Returns the linearly interpolated values between array values '''
@@ -302,6 +329,15 @@ name_sets2 = 'dataset_comp_reldev.png'
 tit_sets2 = 'Comparison of the optimized states from the two datasets'
 fig_reldev(x_sets,lab_sets, tit_sets2, figname=name_sets2)
 
+# NOAA MCF with NOAA/AGAGE CH4
+x_agch4 = read_x('noaamcf','agage')
+xs = [x_noaa,x_agag,x_agch4]
+labs = ['All NOAA', 'All AGAGE', 'NOAA MCF\nAGAGE CH4']
+names = 'dataset_comp_full.png'
+tits = 'Comparison of the results from MCF and CH4 from either NOAA or AGAGE,\n\
+     and what happens if we mix up the datasets.'
+fig_reldev(xs,labs,tits,figname=names)
+
 # Varying MCF obs error
 x_mcfe05 = read_x('mcfe0.5','noaa')
 x_mcfe10 = read_x('normal','noaa')
@@ -361,6 +397,23 @@ titl = 'The effect of reducing the correlation length in CH4 and OH\n\
         from 10 and 1yr to 2/.1 and .1/.1yr respectively'
 fig_reldev([x_noaa,x_low,x_lowr],labs,titl,figname='Lowcor_reldev.png')
 fig_oh_v_ch4growth([x_noaa,x_low,x_lowr],labs,titl,figname='Lowcor_cor.png')
+<<<<<<< HEAD
+=======
+
+# Influence correlation length CH4 on OH and CH4
+x_ch4len2 = read_x('ch4len2','noaa')
+x_ch4len3 = read_x('ch4len3','noaa')
+x_ch4len4 = read_x('ch4len4','noaa')
+x_ch4len5 = read_x('ch4len5','noaa')
+x_ch4len6 = read_x('ch4len6','noaa')
+x_ch4len7 = read_x('ch4len7','noaa')
+x_ch4len10 = read_x('ch4len10','noaa')
+x_ch4lens = [x_ch4len2, x_ch4len4, x_ch4len6, x_ch4len10]
+labs = ['2 yr', '4 yr', '6 yr', '10 yr']
+titl = 'The effect of the CH4 correlation length on the optimized\n\
+        CH4 emissions and OH fields'
+fig_ohch4_reldev(x_ch4lens,labs,titl,figname='CH4len.png')
+>>>>>>> origin/master
 
 # Methane growth rates
 Tg = 1e-9
@@ -422,12 +475,13 @@ ax2=fig.add_subplot(312)
 ax3=fig.add_subplot(313)
 ax1.set_title(r'CH$_4$ growth vs OH')
 ax2.set_title(r'CH$_4$ growth vs CH$_4$ emissions')
-ax3.set_title(r'CH$_4$ emissoins vs OH')
+ax3.set_title(r'CH$_4$ emissions vs OH')
 ax1.set_ylabel(r'CH$_4$ growth rate (ppb/yr)')
-ax3.set_ylabel('MCF growth rate (%)')
+ax2.set_ylabel(r'CH$_4$ growth rate (ppb/yr)')
+ax3.set_ylabel(r'OH (10$^6$ molec cm$^{-3}$)')
 ax1.set_xlabel(r'OH (10$^6$ molec cm$^{-3})$')
 ax2.set_xlabel(r'CH$_4$ emissions (Tg/yr)')
-ax3.set_xlabel(r'OH (10$^6$ molec cm$^{-3}$)')
+ax3.set_xlabel(r'CH$_4$ emissions (Tg/yr)')
 ax1.grid();ax2.grid();ax3.grid()
 ax1.plot(foh_mid_noaa*oh*1e-6,ch4_growth_noaa,'o',color='steelblue',label='NOAA, r='+str(cor_ch4_oh_noaa))
 ax1.plot(foh_mid_agag*oh*1e-6,ch4_growth_agag,'o',color='maroon',label='AGAGE, r='+str(cor_ch4_oh_agag))
@@ -435,7 +489,6 @@ ax2.plot(ech4_mid_noaa*Tg,ch4_growth_noaa,'o',color='steelblue',label='NOAA, r='
 ax2.plot(ech4_mid_agag*Tg,ch4_growth_agag,'o',color='maroon',label='AGAGE, r='+str(cor_ch4_em_agag))
 ax3.plot(ech4_mid_noaa*Tg,foh_mid_noaa*oh*1e-6,'o',color='steelblue',label='NOAA, r='+str(cor_ch4em_oh_noaa))
 ax3.plot(ech4_mid_agag*Tg,foh_mid_agag*oh*1e-6,'o',color='maroon',label='AGAGE, r='+str(cor_ch4em_oh_agag))
-
 ax1.legend(loc='best'); ax2.legend(loc='best'); ax3.legend(loc='best')
 plt.tight_layout()
 plt.savefig(figloce+'\\Correlation plots CH4.png')
@@ -443,6 +496,17 @@ plt.savefig(figloce+'\\Correlation plots CH4.png')
 
 fig_oh_v_ch4growth([x_noaa],['noaa'],'Correlation OH with CH4 for noaa data',figname='OH_v_CH4growth_noaa.png',dataset='noaa')
 fig_oh_v_ch4growth([x_agag],['agage'],'Correlation OH with CH4 for noaa data',figname='OH_v_CH4growth_agag.png',dataset='agage')
+<<<<<<< HEAD
+=======
+
+# Using OH to match MCF or CH4:
+x_ohtomcf = read_x('ohtomatchmcf','noaa')
+x_ohtoch4 = read_x('ohtomatchch4','noaa')
+xx = [x_noaa, x_ohtomcf, x_ohtoch4]
+labs = ['Normal','OH to MCF','OH to CH4']
+tits = 'How much OH variation is needed to fit\n MCF or CH4 with no emission variations?'
+fig_reldev(xx,labs,tits,figname='OH_tomatch_reldev')
+>>>>>>> origin/master
 
 # MCF emissions plot
 figloce = os.path.join(figloc,'Emissions')
@@ -551,6 +615,7 @@ ch4_noaa,_,_ = forward_ch4(x_noaa)
 loh_noaa = foh_noaa * l_ch4_oh * ch4_noaa
 ech4_noaa = fch4_noaa * em0_ch4 / conv_ch4
 lother_noaa = l_ch4_other * ch4_noaa
+<<<<<<< HEAD
 fig = plt.figure()
 ax1 = fig.add_subplot(111)
 ax2 = ax1.twinx()
@@ -563,6 +628,19 @@ ax2.plot(array(years[1:])-.5,ch4_growth_noaa,'o-',color='steelblue',label='CH4 g
 ax2.plot(array(years[1:])-.5,ch4_noaa[1:]-ch4_noaa[:-1],'o--',color='steelblue',label='CH4 growth model NOAA')
 
 
+=======
+fig = plt.figure(figsize=(10,10))
+ax1 = fig.add_subplot(111)
+ax1.set_title('Changes in the mass balance terms of CH4 (NOAA data)')
+ax1.set_ylabel('Change (ppb/yr)')
+ax1.plot(years,ech4_noaa-np.mean(ech4_noaa),'go-',label='Emi')
+ax1.plot(years,loh_noaa-np.mean(loh_noaa),'ro-', label='OH loss')
+ax1.plot(years,lother_noaa-np.mean(lother_noaa),'o--',color='maroon',label='Other loss')
+ax1.plot(array(years[1:])-.5,ch4_growth_noaa,'o-',color='black',label='CH4 growth data',linewidth=2.)
+ax1.legend(loc='best')
+plt.savefig(figloc+'\\Mass balance CH4')
+
+>>>>>>> origin/master
 # d13C in emissions
 _,_,_,_,_,_,_,fch4_noaa,r13e_noaa = unpack(x_noaa)
 _,_,_,_,_,_,_,fch4_agag,r13e_agag = unpack(x_agag)
@@ -582,27 +660,28 @@ ech4 = fch4_agag*em0_ch4
 sig_bmb = -22
 sig_bio = -62
 sig_fof = -44
-E_bio = (ech4*(d13e_noaa-sig_fof) + bmb*(sig_fof-sig_bmb)) / (sig_bio-sig_fof)
-E_fof = (ech4*(d13e_noaa-sig_bio) + bmb*(sig_bio-sig_bmb)) / (sig_fof-sig_bio)
-print 'bmb',min(bmb/ech4),max(bmb/ech4)
-print 'E_bio:',min(E_bio/ech4),max(E_bio/ech4)
-print 'E_fof:',min(E_fof/ech4),max(E_fof/ech4)
+E_bio_agag = (ech4*(d13e_agag-sig_fof) + bmb*(sig_fof-sig_bmb)) / (sig_bio-sig_fof)
+E_fof_agag = (ech4*(d13e_agag-sig_bio) + bmb*(sig_bio-sig_bmb)) / (sig_fof-sig_bio)
+ech4 = fch4_noaa*em0_ch4
+E_bio_noaa = (ech4*(d13e_noaa-sig_fof) + bmb*(sig_fof-sig_bmb)) / (sig_bio-sig_fof)
+E_fof_noaa = (ech4*(d13e_noaa-sig_bio) + bmb*(sig_bio-sig_bmb)) / (sig_fof-sig_bio)
 
 fig = plt.figure(figsize=(10,6))
 ax1 = fig.add_subplot(211)
 ax2 = fig.add_subplot(212)
 ax3 = ax2.twinx()
 ax1.set_ylabel(d13c_lab)
-ax1.plot(years,d13e_noaa,'o-',color='steelblue',label='NOAA')
-ax1.plot(years,d13e_agag,'o-',color='maroon',label='AGAGE')
-ax2.set_ylabel('Biogenic (%)',color='green')
-ax3.set_ylabel('Fossil fuel (%)',color='black')
-ax2.plot(years,E_bio,'go-',label='Biogenic')
-ax3.plot(years,E_fof,'ko-',label='Fossil fuel')
+ax1.plot(yrs,d13e_noaa,'o-',color='steelblue',label='NOAA')
+ax1.plot(yrs,d13e_agag,'o-',color='maroon',label='AGAGE')
+ax2.set_ylabel('Biogenic (Tg/yr)',color='green')
+ax3.set_ylabel('Fossil fuel (Tg/yr)',color='black')
+ax2.plot(yrs,E_bio*1e-9,'go-',label='Biogenic')
+ax3.plot(yrs,E_fof*1e-9,'ko-',label='Fossil fuel')
 ax1.legend(loc='best')
 ax2.legend(loc='lower center')
 ax3.legend(loc='upper center')
 plt.tight_layout()
+<<<<<<< HEAD
 plt.savefig(figloc+'\\CH4_source_comp.png')
 
 x_noaa_ch = x_noaa[:]
@@ -613,6 +692,30 @@ d13cc = r13_to_d13c(r13_ch4)
 
 plt.plot(d13cc,'ro')
 
+=======
+plt.savefig(figloc+'\\CH4_source_comp2.png')
+
+fig = plt.figure(figsize=(15,10))
+ax2 = fig.add_subplot(111)
+ax3 = ax2.twinx()
+ax2.set_ylabel('Biogenic (Tg/yr)',color='green')
+ax3.set_ylabel('Fossil fuel (Tg/yr)',color='black')
+ax2.plot(yrs,E_bio_agag*1e-9,'go-',label='Biogenic\n(AGAGE)')
+ax3.plot(yrs,E_fof_agag*1e-9,'ko-',label='Fossil fuel\n(AGAGE)')
+ax2.plot(yrs,E_bio_noaa*1e-9,'go--',label='Biogenic\n(NOAA)')
+ax3.plot(yrs,E_fof_noaa*1e-9,'ko--',label='Fossil fuel\n(NOAA)')
+ax2.legend(loc='lower center')
+ax3.legend(loc='upper center')
+plt.tight_layout()
+plt.savefig(figloc+'\\CH4_source_comp.png')
+
+E_bio_3yr = [np.mean(E_bio_agag[i:i+3]) for i in range(nt-2)]
+E_fof_3yr = [np.mean(E_fof_agag[i:i+3]) for i in range(nt-2)]
+fig = plt.figure()
+ax1 = fig.add_subplot(111); ax2 = ax1.twinx()
+ax1.plot(yrs[1:-1],E_bio_3yr,'g')
+ax2.plot(yrs[1:-1],E_fof_3yr,'k')
+>>>>>>> origin/master
 
 # TEMPERATURE EFFECT ON REACTION CONSTANTS CH4 AND MCF
 #Tt = np.linspace(272,274)

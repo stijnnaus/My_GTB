@@ -19,4 +19,10 @@ Box model settings:
 - How should I set the correlation lengths of OH and CH4? If short, more noisy but maybe more information?
 - How important is it that I get a good chi-squared during my experiments (except when explicitly overfitting)?
 - How should I set the different prior errors? This seems to me actually a very arbitrary, and result-oriented procedure.
+<<<<<<< HEAD
 	By tuning the prior errors such and such I can make my model say exactly what I want it to say...
+=======
+	By tuning the prior errors such and such I can make my model say exactly what I want it to say...
+- Should I make the errors in fst,fsl,fme different? Mccullogh and Midgley seem to indicate that shifts from rapid to
+	stockpiling is less likely than shifts between the other 3.
+>>>>>>> origin/master

@@ -5,7 +5,11 @@
 # The other errors:
             foh: 0.000; fst: 0.000; fsl: 0.000; fch4: 0.006; ed13c_e: 0.000 permil
 # Correlation lengths:
+<<<<<<< HEAD
             In OH: 0.10 yr; in CH4 emissions: 2.00 yr
+=======
+            In OH: 0.80 yr; in CH4 emissions: 2.00 yr
+>>>>>>> origin/master
 # Observation errors:
 # Year	MCF(ppt)	CH4(ppb)	(d13C(permil)
 1992	0.291	0.550	0.030

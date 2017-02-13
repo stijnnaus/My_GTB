@@ -15,6 +15,12 @@ from datetime import timedelta
 from copy import *
 from numpy import linalg
 from scipy import optimize
+import netCDF4 as nc
+from netCDF4 import Dataset
+
+
+fi = 'C:\\Users\\Stijn\Documents\\Wageningen\\station_file_004.nc'
+f = Dataset(fi,'r')
 
 def read_mcf_emi(fil):
     f = open(fil,'r')

@@ -362,7 +362,7 @@ def unpack(x):
 
 # Tuneable parameters
 dataset = 'noaa'
-exp_name = 'normal'+'_'+dataset
+exp_name = 'ch4len10'+'_'+dataset
 header_p1 = '#\n'
 nstep = 400
 temp = 272.0  # Kelvin        
@@ -455,12 +455,21 @@ nstate = len(x_pri)
 b = np.zeros((nstate,nstate))
 foh_e = .03*pri_e_red # error in initial oh fields
 fst_e = .03*pri_e_red; fsl_e = .03*pri_e_red; fme_e = .03*pri_e_red   # mcf emission errors
+<<<<<<< HEAD
 fch4_e = .15*pri_e_red; ed13c_e = .5*pri_e_red # ch4 (%) & d13c (perm) emission errors
+=======
+fch4_e = .1*pri_e_red; ed13c_e = .8*pri_e_red # ch4 & d13c emission errors
+>>>>>>> origin/master
 _, r13e_e = d13c_to_r13(em0_d13c[0], ed13c_e) # resulting error in r13e
 mcfi_e = 5.; ch4i_e = 5.; d13ci_e = 1. # error in initial values
 _, r13i_e = d13c_to_r13(d13c_obs[0], d13ci_e) # resulting error in r13i
+<<<<<<< HEAD
 corlen_oh = .5 
 corlen_em = 2.
+=======
+corlen_oh = 1.
+corlen_em = 10.
+>>>>>>> origin/master
 
 b[0,0] = (x_pri[0]*mcfi_e)**2
 b[1, 1] = (x_pri[1]*ch4i_e)**2
@@ -669,6 +678,11 @@ if write_data:
 
 
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> origin/master
 fig = plt.figure(figsize=(10,30))
 ax1 = fig.add_subplot(311)
 ax2 = fig.add_subplot(312)
@@ -682,7 +696,10 @@ ax2.plot(years, (ch4_obs-ch4_opt)/ch4_obs_e, 'go-')
 ax2.plot(years, [-1]*nt, 'k--'); ax2.plot(years, [1]*nt, 'k--')
 ax3.plot(years, (d13c_obs-d13c_opt)/d13c_obs_e, 'go-')
 ax3.plot(years, [-1]*nt, 'k--'); ax3.plot(years, [1]*nt, 'k--')
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/master
 
 
 
@@ -692,7 +709,10 @@ mcfff = mcf_obs # For use in data_plots
 chhh4 = ch4_obs # For use in data_plots
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/master
 
 
 
