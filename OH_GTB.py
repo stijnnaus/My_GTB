@@ -372,8 +372,7 @@ years = np.arange(styear,edyear)
 fyears = np.arange(1951,edyear) # years for which I have MCF production
 red = 1e-3
 save_fig = False # If true it save the figures that are produced
-write_data = True # If true writes opt results to output file
-
+write_data = False # If true writes opt results to output file
 
 # Constants
 dt = 1./nstep
@@ -449,19 +448,19 @@ r13e_pri = r13e0
 x_pri = np.concatenate((mcf0_pri, ch40_pri, r130_pri, foh_pri, \
                        fst_pri,  fsl_pri, fme_pri,  fch4_pri,  r13e_pri))
 
-pri_e_red = .5
+pri_e_red = .3
 
 nstate = len(x_pri)
 # Constructing the prior error matrix b
 b = np.zeros((nstate,nstate))
-foh_e = .02*pri_e_red # error in initial oh fields
+foh_e = .03*pri_e_red # error in initial oh fields
 fst_e = .03*pri_e_red; fsl_e = .03*pri_e_red; fme_e = .03*pri_e_red   # mcf emission errors
-fch4_e = .15*pri_e_red; ed13c_e = .8*pri_e_red # ch4 & d13c emission errors
+fch4_e = .15*pri_e_red; ed13c_e = .5*pri_e_red # ch4 (%) & d13c (perm) emission errors
 _, r13e_e = d13c_to_r13(em0_d13c[0], ed13c_e) # resulting error in r13e
-mcfi_e = 5.; ch4i_e = 5e-0; d13ci_e = 1. # error in initial values
+mcfi_e = 5.; ch4i_e = 5.; d13ci_e = 1. # error in initial values
 _, r13i_e = d13c_to_r13(d13c_obs[0], d13ci_e) # resulting error in r13i
-corlen_oh = 1. 
-corlen_em = 10.
+corlen_oh = .5 
+corlen_em = 2.
 
 b[0,0] = (x_pri[0]*mcfi_e)**2
 b[1, 1] = (x_pri[1]*ch4i_e)**2
@@ -670,8 +669,19 @@ if write_data:
 
 
 
-
-
+fig = plt.figure(figsize=(10,30))
+ax1 = fig.add_subplot(311)
+ax2 = fig.add_subplot(312)
+ax3 = fig.add_subplot(313)
+ax1.set_title('The number of SD difference between obs\n and optimalized concentrations\n\nMCF')
+ax2.set_title(r'CH$_4$')
+ax3.set_title(r'$\delta^{13}$C')
+ax1.plot(years, (mcf_obs-mcf_opt)/mcf_obs_e, 'go-')
+ax1.plot(years, [-1]*nt, 'k--'); ax1.plot(years, [1]*nt, 'k--')
+ax2.plot(years, (ch4_obs-ch4_opt)/ch4_obs_e, 'go-')
+ax2.plot(years, [-1]*nt, 'k--'); ax2.plot(years, [1]*nt, 'k--')
+ax3.plot(years, (d13c_obs-d13c_opt)/d13c_obs_e, 'go-')
+ax3.plot(years, [-1]*nt, 'k--'); ax3.plot(years, [1]*nt, 'k--')
 
 
 
@@ -682,33 +692,7 @@ mcfff = mcf_obs # For use in data_plots
 chhh4 = ch4_obs # For use in data_plots
 
 
-Tt = np.linspace(272,274)
-kmcf0 = 1.64e-12*exp(-1520.0/temp)
-kmcf = 1.64e-12*exp(-1520.0/Tt)
-kch40 = 2.45e-12*exp(-1775.0/temp)
-kch4 = 2.45e-12*exp(-1775.0/Tt)
-kch4r = kch4/kch40-1
-ratio0 = kmcf/kch40
-ratio = kmcf/kch4
-#plt.figure()
-#plt.xlabel('Temperature')
-#plt.ylabel('Change in kmcf/kch4 (%)')
-#plt.title('The effect that a systematic bias in T will have on the ratio\n\
-#             between the reaction constant with OH of MCF and CH4, relative\n\
-#             to the T=272K basecase')
-#plt.plot(Tt,100*(ratio/ratio0-1), 'r-')
-#plt.grid()
-#plt.tight_layout()
-#plt.savefig('temp_effect_kch4_kmcf.png')
-plt.figure()
-plt.plot(Tt-temp,100*(kmcf/kmcf0-1), 'b-')
-plt.grid()
-plt.title('The effect that an increase in T over time will have on\n\
-            the MCF reaction rate, relative to the T=272K basecase')
-plt.xlabel('Temperature change')
-plt.ylabel('Change in kmcf (%)')
-plt.tight_layout()
-plt.savefig('temp_effect_kmcf.png')
+
 
 
 
