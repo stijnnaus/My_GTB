@@ -1,0 +1,24 @@
+BOX MODEL QUESTIONS
+
+Experiments:
+- What OH do I need to match MCF with no MCF emission changes? And what does this do to CH4 emissions?
+- What OH do I need to match CH4 with no CH4 emission changes? And what does this do to MCF emissions?
+	METHOD: Set MCF emission prior error very low, and OH and CH4 error high
+- What results do I get when I do not optimize CH4? MCF? OH? d13C?
+	METHOD: Low prior errors in the quantity of interest, and high observational errors
+- If I use the same OH (eg constant) for NOAA and AGAGE CH4, do I still get such different emissions?
+
+Interpretation:
+- How well can I explain the year-to-year variations in CH4 emissions?
+- What does the d13C signature of the CH4 emissions tell me exactly?
+- Where do the differences between my results and literature (montzka/rigby) come from?
+- How is it that when I decrease the correlation length, CH4 emissions get very noisy, but the match with the
+	observations does not become "overfittingly" well?
+
+Box model settings:
+- How should I set the correlation lengths of OH and CH4? If short, more noisy but maybe more information?
+- How important is it that I get a good chi-squared during my experiments (except when explicitly overfitting)?
+- How should I set the different prior errors? This seems to me actually a very arbitrary, and result-oriented procedure.
+	By tuning the prior errors such and such I can make my model say exactly what I want it to say...
+- Should I make the errors in fst,fsl,fme different? Mccullogh and Midgley seem to indicate that shifts from rapid to
+	stockpiling is less likely than shifts between the other 3.
